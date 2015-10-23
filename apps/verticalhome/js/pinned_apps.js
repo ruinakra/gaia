@@ -13,14 +13,18 @@
     var pinnedAppTitle = document.createElement('span');
     var pinnedList = document.getElementById('pinned-apps-list');
     var moreAppsLi = document.getElementById('moreApps');
+    var unreadNotif = document.createElement('div');
+
 
     pinnedElem.className = 'pinned-app-item';
     pinnedAppIcon.className = 'pinned-app-icon';
     pinnedAppTitle.className = 'title';
+    unreadNotif.className = 'unread_notif item-hidden';
 
     pinnedElem.setAttribute('data-index', this.index);
     pinnedElem.appendChild(pinnedAppIcon);
     pinnedElem.appendChild(pinnedAppTitle);
+    pinnedElem.appendChild(unreadNotif);
 
     pinnedList.insertBefore(pinnedElem, moreAppsLi);
 
@@ -149,9 +153,71 @@
     PinnedAppsManager.instance = this;
 
     this.items = [];
+    this._storeRef = null;
+  }
+
+  function LoadAllNotifications(store) {
+    return new Promise( (resolve, reject) => {
+      var storedNotifications = {};
+      var cursor = store.sync();
+      function cursorResolve(task) {
+        switch (task.operation) {
+          case 'update':
+          case 'add':
+            storedNotifications[task.id] = task.data;
+            break;
+
+          case 'remove':
+            delete storedNotifications[task.id];
+            break;
+
+          case 'clear':
+            storedNotifications = {};
+            break;
+
+          case 'done':
+            resolve(storedNotifications);
+            break;
+        }
+
+        cursor.next().then(cursorResolve, reject);
+      }
+      cursor.next().then(cursorResolve, reject);
+
+    });
+  }
+
+  function CleanAllBubbles() {
+    app.getPinAppList().forEach( app => {
+      ShowNotifBubble(app.manifestURL, 0);
+    });
+  }
+
+  function ShowNotifBubble(appId,notifCount){
+    var items = app.pinnedAppsManager.items;
+    for(var i=0;items.length; i++){
+      if(items[i].entry.manifestURL == appId){
+        var unreadNotif = items[i].element
+          .getElementsByClassName('unread_notif')[0];
+
+          var notifCountBase;
+          notifCountBase = parseInt(notifCount);
+
+          if(notifCountBase > 0 || notifCountBase){
+            unreadNotif.classList.remove('item-hidden');
+            unreadNotif.textContent = notifCountBase;
+          }
+          else{
+            unreadNotif.classList.add('item-hidden');
+            unreadNotif.textContent = 0;
+          }
+
+      }
+    }
   }
 
   PinnedAppsManager.prototype = {
+    STORE_NAME: 'notifications_count',
     init: function () {
       var pinnedAppsList = app.getPinnedAppsList();
 
@@ -181,6 +247,56 @@
         var pinList = document.getElementById('pinned-apps-list');
         pinList.appendChild(moreApps);
       }
+
+       this.initStore().then(store => {
+        store.onchange = e => {
+          switch (e.operation) {
+          case 'removed':
+            ShowNotifBubble(e.id, 0);
+            break;
+          case 'cleared':
+            CleanAllBubbles();
+            break;
+          case 'added':
+            case 'updated':
+            break;
+            }
+
+          this._storeRef.get(e.id).then( count => {
+            // trying to workaround bunch removal of notifications e.g. when
+            //opening 'Missed calls'
+            // screen, which leads to almost simultaneous 'close' of all
+            //missed calls notifications
+            if (count) {
+              ShowNotifBubble(e.id, count);
+            }
+          });
+        };
+        LoadAllNotifications(store).then( data => {
+          Object.getOwnPropertyNames(data).forEach( item => {
+            ShowNotifBubble(item, data[item]);
+          });
+        });
+
+      });
+    },
+
+    debug: function pa_debug(msg) {
+      console.log('[el] ' + msg);
+    },
+
+    initStore: function pa_initStore() {
+      return new Promise(resolve => {
+        if (this._storeRef) {
+          return resolve(this._storeRef);
+        }
+        navigator.getDataStores(this.STORE_NAME).then(stores => {
+          this._storeRef = stores[0];
+          //TODO: need to iterate through obtained store, to read initial
+          //values for notifications.
+          return resolve(this._storeRef);
+        });
+      });
     },
 
     addEntry: function(i,manifestURL,img,name) {
