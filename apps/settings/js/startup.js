@@ -8,6 +8,67 @@
  *
  * @module InitialPanelHandler
  */
+
+
+var settingsInit = [
+  { type:"left", iconPath:"somefolder1/caller1.png", text:"this is text", description:"this is description", number:0 },
+  { type:"right", iconPath:"somefolder2/caller2.png", text:"this is text", description:"this is description", number:0 },
+  { type:"notification", iconPath:"", text:"missed calls", description:"this is description", number:5 }
+]
+
+navigator.getDataStores('settings').then(function(stores) {
+  stores[0].getLength().then(function(storeLength) {
+    if(storeLength == 0) {
+      for(i = 0; i < settingsInit.length; i++) {
+        addRecord(stores[0],settingsInit[i]);  
+      }; 
+    } else {
+      var cursor = stores[0].sync();
+      runNextTask(cursor);
+    }
+  });
+});
+
+function runNextTask(cursor) {
+ cursor.next().then(function(task) {
+   manageTask(cursor, task);
+ });
+}
+
+function manageTask(cursor, task) {
+  if (task.operation == 'done') {
+    // Finished adding contacts!
+    return;
+  }
+
+  if (task.operation == 'add') {
+    // Add the contacts that are different to how it was before
+    displayExisting(task.id, task.data);
+  }
+
+  runNextTask(cursor);
+}
+
+function addRecord(store, obj) {
+  store.add(obj).then(function(id) {
+
+    var myId = id;
+    console.log(myId);
+
+
+  });
+}
+
+function displayExisting(id,data) {
+  var myId = id;
+  console.log(data.type);
+  console.log(data.iconPath);
+  console.log(data.text);
+  console.log(data.description);
+  console.log(data.number);
+
+}
+
 (function(exports) {
   'use strict';
 

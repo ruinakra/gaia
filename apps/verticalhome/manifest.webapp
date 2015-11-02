@@ -55,7 +55,11 @@
     "collections_store": {
       "readonly": false,
       "description": "Display collections"
-    }
+    },
+    "settings": {
+      "access" : "readonly",
+      "description": "The settings data store owned by the Settings app."
+    }    
   },
   "datastores-owned": {
     "vertical_preferences_store": {

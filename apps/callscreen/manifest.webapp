@@ -35,6 +35,12 @@
       "description": "Facebook Friends"
     }
   },
+  "datastores-owned": {
+    "callscreen_store": {
+      "access" : "readwrite",
+      "description": "The Settings App data store."
+    }
+  },
   "orientation": "default",
   "icons": {
     "84": "/style/icons/dialer_84.png",

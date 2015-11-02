@@ -2,6 +2,58 @@
 /* global ItemStore, LazyLoader, Configurator, groupEditor, PinNavigation */
 /* global requestAnimationFrame */
 
+
+
+
+
+
+navigator.getDataStores('settings').then(function(stores) {
+  var cursor = stores[0].sync();
+  runNextTask(cursor);
+
+  stores[0].onchange = function() {
+    contactList.innerHTML = '';
+    var cursor = stores[0].sync();
+    runNextTask(cursor);
+  }
+});
+
+
+function runNextTask(cursor) {
+ cursor.next().then(function(task) {
+   manageTask(cursor, task);
+ });
+}
+
+function manageTask(cursor, task) {
+ if (task.operation == 'done') {
+   // Finished adding contacts!
+   return;
+ }
+
+ if (task.operation == 'add') {
+   // Add the contacts that are different to how it was before
+   loadData(task.data);
+ }
+
+ runNextTask(cursor);
+}
+
+function loadData(data) {
+  console.log(data.type);
+  console.log(data.iconPath);
+  console.log(data.text);
+  console.log(data.description);
+  console.log(data.number);
+}
+
+
+
+
+
+
+
+
 (function(exports) {
 
   // Hidden manifest roles that we do not show
