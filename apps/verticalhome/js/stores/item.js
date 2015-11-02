@@ -305,7 +305,7 @@
     /**
      * This function save application (item) to DB
      * @param  {object (application)}   object   Application's object
-     * @param  {Function} callback [callback that executes after saving 
+     * @param  {Function} callback [callback that executes after saving
      * object to DB]
      * @return {nothing}
      */
@@ -336,6 +336,24 @@
               },
               callback);
 
+    },
+
+    deletePinnedAppItem: function (object, callback) {
+      if (object.index == null) {
+        console.error('Attempting to delete object without `index`');
+        return;
+      }
+
+      newTxn(
+              DB_PINNED_APP_STORE,
+              'readwrite',
+              function (txn, store) {
+                var request = store.get(object.index);
+                request.onsuccess = function (req) {
+                  store.delete(object.index);
+                };
+              },
+              callback);
     },
 
 

@@ -79,7 +79,6 @@ body.edit-group {
   opacity: 0;
 }
 
-
 #clock {
   width: 20rem;
   margin: 0 auto;
@@ -104,3 +103,38 @@ body.edit-group {
   font-weight: 300;
 }
 
+.toast-visible{
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: #555;
+  z-index: 99;
+  clear: both;
+  text-align: left;
+  min-height: 3.2rem;
+  font-size: 1.3rem;
+  color: #fff;
+  padding: 0.3rem 1rem;
+}
+
+#main-screen-header{
+  background-color: #afafaf;
+  text-align: center;
+  color: #fff;
+  font-size: 1.5rem;
+  padding: 0.8rem 0;
+  font-style: italic;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 99;
+}
+
+.personalise_mode #main-screen-header{
+  display: block;
+}
+
+.hidden-item{
+  display: none;
+}

@@ -4,7 +4,7 @@
   var MoreAppsNavigation = {
     items: null,
     selectedElemIndex: 0,
-
+    personalizeMode: false,
     /**
      * Initialize navigation list in MoreAppsNavigation when all items are
      * loaded
@@ -30,6 +30,9 @@
      * Handles keydown event on 'More Apps' screen
      */
     handleEvent: function (e) {
+      var mainscreen= document.getElementById('more-apps-screen');
+      this.personalizeMode = mainscreen.classList.contains('personalize_mode');
+
       var deltaIndex = 0;
       switch (e.key) {
         case 'ArrowUp':
@@ -60,6 +63,11 @@
           this.items[this.selectedElemIndex].element.click();
           e.preventDefault();
           break;
+        case 'c':
+          if(this.personalizeMode){
+            app.pinToMainScreen();
+          }
+        break;
       }
     },
 

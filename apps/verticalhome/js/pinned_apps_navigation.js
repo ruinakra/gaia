@@ -49,6 +49,18 @@
     }else{
       this.selector = '';
     }
+
+     /**
+     * This is a variable that used for storing personalize mode status
+     * @type {Boolean}
+     */
+    this.personalizeMode = false;
+
+    /**
+     * This is a variable that used for for storing rearrange mode status
+     * @type {Boolean}
+     */
+    this.rearrangeMode = false;
   }
 
   PinnedAppsNavigation.prototype = {
@@ -65,10 +77,10 @@
         return elem1.dataset.index - elem2.dataset.index;
       });
 
-      var selected = this.elemList.querySelector('.selected');
+      var selected = this.elemList.querySelectorAll('.selected');
 
-      if (selected) {
-        selected.classList.remove('selected');
+      for (var i = 0; i<selected.length; i++) {
+        selected[i].classList.remove('selected');
       }
 
       this.selectedElemIndex = 0;
@@ -122,14 +134,124 @@
       }
     },
 
+    moveItemUp: function moveItemUp(){
+      var topStyle = parseFloat(this.elemList.style.top) || 0;
+      var itm = this.elements[this.selectedElemIndex];
+      var tmp = this.selectedElemIndex;
+      var parentDiv = itm.parentNode;
+      if(tmp <= 0){
+        return false;
+      }
+      var prevIndex = this.selectedElemIndex-1;
+      var itmPrev = this.elements[prevIndex];
+
+      var selectedId = itm.dataset.index;
+      var prevId = itmPrev.dataset.index;
+
+      app.pinnedAppsManager.items[tmp].index = prevId;
+      app.pinnedAppsManager.items[prevId].index = selectedId;
+
+      var cln = itm.cloneNode(true);
+
+      parentDiv.insertBefore(cln, itmPrev);
+      itm.parentNode.removeChild(itm);
+      this.selectedElemIndex--;
+      this.elemList.style.top =  topStyle + 6 + 'rem';
+      var allItems = document.querySelectorAll('.pinned-app-item');
+      this.elements = Array.prototype.slice.call(allItems);
+    },
+
+    moveItemDown: function moveItemDown(){
+      var topStyle = parseFloat(this.elemList.style.top) || 0;
+      var itm = this.elements[this.selectedElemIndex];
+      var tmp =  this.selectedElemIndex;
+      var parentDiv = itm.parentNode;
+      var nextIndex = this.selectedElemIndex+1;
+
+      if(nextIndex >= this.elements.length-2){
+        return false;
+      }
+      var itmNext = this.elements[nextIndex];
+
+      var selectedId = itm.dataset.index;
+      var nextId = itmNext.dataset.index;
+
+      app.pinnedAppsManager.items[tmp].index = nextId;
+      app.pinnedAppsManager.items[nextId].index = selectedId;
+
+      var cln = itmNext.cloneNode(true);
+
+      parentDiv.insertBefore(cln, itm);
+      itmNext.parentNode.removeChild(itmNext);
+
+      this.selectedElemIndex++;
+      this.elemList.style.top =  topStyle - 6 + 'rem';
+      var allItems = document.querySelectorAll('.pinned-app-item');
+      this.elements = Array.prototype.slice.call(allItems);
+    },
+
+    sortItems: function sortItems(){
+      app.pinnedAppsManager.items.sort(function(elem1, elem2){
+         return elem1.index - elem2.index;
+      });
+    },
+
+    arrowDownFunc: function arrowDownFunc(){
+      var topStyle = null;
+      this.elements[this.selectedElemIndex].classList.remove('selected');
+      if (this.selectedElemIndex == 3){
+        if (!this.elemList.dataset.scrolldown) {
+          topStyle = parseFloat(this.elemList.style.top);
+          this.elemList.style.top = topStyle - 6 + 'rem';
+          this.elemList.dataset.scrolldown = this.elemList.style.top;
+        }
+
+        this.selectedElemIndex--;
+
+        var removed = this.elements.splice(0, 1);
+
+        var cloned = removed[0].cloneNode(true);
+
+        removed[0].classList.add('removed');
+
+        this.elemList.appendChild(cloned);
+
+        if (app.pinnedAppsManager.items[+cloned.dataset.index]){
+          app.pinnedAppsManager.
+              items[+cloned.dataset.index].
+              refreshDomElem(cloned);
+        }
+
+        this.elements[this.elements.length] = cloned;
+
+        this.selectedElemIndex++;
+        this.elements[this.selectedElemIndex].classList.add('selected');
+
+        this.elemList.style.top = this.elemList.dataset.scrolldown;
+      } else {
+        this.selectedElemIndex++;
+        this.elements[this.selectedElemIndex].classList.add('selected');
+
+        topStyle = parseFloat(this.elemList.style.top);
+        this.elemList.style.top = topStyle - 6 + 'rem';
+        this.elemList.dataset.scrolldown = this.elemList.style.top;
+      }
+
+      if (this.selectedElemIndex == 1) {
+        this.elemList.style.top = '0rem';
+      }
+    },
+
     /**
      * Handle event keydown
      * @param  {[Object]} e [default object]
      * @return {[nothing]}   [nothing]
      */
     handleEvent: function(e) {
-
       var self = this;
+      var mainscreen = document.getElementById('main-screen');
+      this.personalizeMode = mainscreen.classList.contains('personalize_mode');
+      this.rearrangeMode = mainscreen.classList.contains('rearrange_mode');
 
       /**
        * This function loops icons on the page.
@@ -170,57 +292,61 @@
           preVerticalNavigation();
           app.clock.hide();
 
-          if (this.elemList.dataset.scrollup) {
-            this.elemList.style.top = this.elemList.dataset.scrollup;
-          } else {
-            this.elemList.style.top = '-6rem';
-            this.elemList.dataset.scrollup = this.elemList.style.top;
+          if(this.rearrangeMode){
+           this.moveItemUp();
           }
-
-          var deltaElemsToStartScroll = 3;
-
-          this.elements[this.selectedElemIndex].classList.remove('selected');
-          if (this.selectedElemIndex >= 0 && this.selectedElemIndex < 4) {
-
-            var cycledElem = deltaElemsToStartScroll - this.selectedElemIndex;
-            cycleElements(cycledElem);
-            this.selectedElemIndex += cycledElem;
-
-            this.selectedElemIndex--;
-            this.elements[this.selectedElemIndex].classList.add('selected');
-
-          } else {
-
-            this.selectedElemIndex--;
-            this.elements[this.selectedElemIndex].classList.add('selected');
-
-            if (this.selectedElemIndex > 3) {
-              topStyle = parseFloat(this.elemList.style.top);
-              this.elemList.style.top =  topStyle + 6 + 'rem';
+          else{
+            if (this.elemList.dataset.scrollup) {
+              this.elemList.style.top = this.elemList.dataset.scrollup;
+            } else {
+              this.elemList.style.top = '-6rem';
               this.elemList.dataset.scrollup = this.elemList.style.top;
             }
 
+            var deltaElemsToStartScroll = 3;
+
+            this.elements[this.selectedElemIndex].classList.remove('selected');
+            if (this.selectedElemIndex >= 0 && this.selectedElemIndex < 4) {
+
+              var cycledElem = deltaElemsToStartScroll - this.selectedElemIndex;
+              cycleElements(cycledElem);
+              this.selectedElemIndex += cycledElem;
+
+              this.selectedElemIndex--;
+              this.elements[this.selectedElemIndex].classList.add('selected');
+
+            } else {
+
+              this.selectedElemIndex--;
+              this.elements[this.selectedElemIndex].classList.add('selected');
+
+              if (this.selectedElemIndex > 3) {
+                topStyle = parseFloat(this.elemList.style.top);
+                this.elemList.style.top =  topStyle + 6 + 'rem';
+                this.elemList.dataset.scrollup = this.elemList.style.top;
+              }
+
+            }
+
+            var lastElem = this.elements[this.elements.length - 1];
+            var clonedElem = lastElem.cloneNode(true);
+
+            this.elemList.insertBefore(clonedElem, this.elements[0]);
+
+            if (app.pinnedAppsManager.items[+clonedElem.dataset.index]){
+              app.pinnedAppsManager.
+                  items[+clonedElem.dataset.index].
+                  refreshDomElem(clonedElem);
+            }
+
+            this.elements.splice(0, 0, clonedElem);
+            this.elements[0].classList.add('out-focus');
+
+            this.selectedElemIndex++;
+
+            lastElem.classList.add('removed');
+            this.elements.splice(-1, 1);
           }
-
-          var lastElem = this.elements[this.elements.length - 1];
-          var clonedElem = lastElem.cloneNode(true);
-
-          this.elemList.insertBefore(clonedElem, this.elements[0]);
-
-          if (app.pinnedAppsManager.items[+clonedElem.dataset.index]){
-            app.pinnedAppsManager.
-                items[+clonedElem.dataset.index].
-                refreshDomElem(clonedElem);
-          }
-
-          this.elements.splice(0, 0, clonedElem);
-          this.elements[0].classList.add('out-focus');
-
-          this.selectedElemIndex++;
-
-          lastElem.classList.add('removed');
-          this.elements.splice(-1, 1);
-
           break;
 
         case 'ArrowDown':
@@ -228,62 +354,79 @@
           preVerticalNavigation();
           app.clock.hide();
 
-          this.elements[this.selectedElemIndex].classList.remove('selected');
-          if (this.selectedElemIndex == (this.elements.length - 3)) {
-            if (!this.elemList.dataset.scrolldown) {
-              topStyle = parseFloat(this.elemList.style.top);
-              this.elemList.style.top = topStyle - 6 + 'rem';
-              this.elemList.dataset.scrolldown = this.elemList.style.top;
-            }
-
-            this.selectedElemIndex--;
-
-            var removed = this.elements.splice(0, 1);
-
-            var cloned = removed[0].cloneNode(true);
-
-            removed[0].classList.add('removed');
-
-            this.elemList.appendChild(cloned);
-
-            if (app.pinnedAppsManager.items[+cloned.dataset.index]){
-              app.pinnedAppsManager.
-                  items[+cloned.dataset.index].
-                  refreshDomElem(cloned);
-            }
-
-            this.elements[this.elements.length] = cloned;
-
-            this.selectedElemIndex++;
-            this.elements[this.selectedElemIndex].classList.add('selected');
-
-            this.elemList.style.top = this.elemList.dataset.scrolldown;
-          } else {
-            this.selectedElemIndex++;
-            this.elements[this.selectedElemIndex].classList.add('selected');
-
-            topStyle = parseFloat(this.elemList.style.top);
-            this.elemList.style.top = topStyle - 6 + 'rem';
-            this.elemList.dataset.scrolldown = this.elemList.style.top;
+          if(this.rearrangeMode){
+           this.moveItemDown();
           }
-
-          if (this.selectedElemIndex == 1) {
-            this.elemList.style.top = '0rem';
+          else{
+            this.arrowDownFunc();
           }
 
           break;
 
         case 'Accept':
           e.preventDefault();
-          var elemId = this.elements[this.selectedElemIndex].getAttribute('id');
-          if ( elemId === 'moreApps') {
-            app.showMoreApps();
-          } else {
+          if (this.personalizeMode){
+            if(document.getElementById('addFromMoreApps')
+                .classList.contains('selected')){
+                app.enterMoreAppsPersonalise();
+             }
+          }
+          else{
+            var elemId = this.elements[this.selectedElemIndex]
+              .getAttribute('id');
+            if ( elemId === 'moreApps') {
+              app.showMoreApps();
+            } else {
 
-            this.elements[this.selectedElemIndex].click();
+              this.elements[this.selectedElemIndex].click();
+            }
           }
 
           break;
+
+        /**
+        *
+        * q - enter to personalize mode
+        * w - exit from personalize mode
+        * r - enter to rearrange mode
+        * t - exit from rearrange mode
+        * x - remove app from homescreen and place it in moreapps
+        * s - save changes on homescreen**/
+        case 'q':
+          app.startPersonalize();
+        break;
+
+        case 'w':
+        if(this.personalizeMode){
+          app.endPersonalize();
+          app.exitMoreAppsPersonalize();
+        }
+        break;
+
+        case 'r':
+        if(this.personalizeMode){
+          app.rearrange();
+        }
+        break;
+
+        case 't':
+        if(this.personalizeMode){
+          app.exitRearrange();
+        }
+        break;
+
+        case 'x':
+          if(this.personalizeMode){
+            app.unpinFromMainScreen();
+          }
+          break;
+
+        case 's':
+          if(this.personalizeMode){
+            this.sortItems();
+            app.saveAllPinnedApps();
+          }
+        break;
       }
 
     },
