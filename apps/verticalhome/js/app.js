@@ -7,47 +7,71 @@
 
 
 
-navigator.getDataStores('settings').then(function(stores) {
-  var cursor = stores[0].sync();
-  runNextTask(cursor);
-
-  stores[0].onchange = function() {
-    contactList.innerHTML = '';
-    var cursor = stores[0].sync();
-    runNextTask(cursor);
-  }
-});
 
 
-function runNextTask(cursor) {
- cursor.next().then(function(task) {
-   manageTask(cursor, task);
- });
-}
+//function init(dbName) {
 
-function manageTask(cursor, task) {
- if (task.operation == 'done') {
-   // Finished adding contacts!
-   return;
- }
-
- if (task.operation == 'add') {
-   // Add the contacts that are different to how it was before
-   loadData(task.data);
- }
-
- runNextTask(cursor);
-}
-
-function loadData(data) {
-  console.log(data.type);
-  console.log(data.iconPath);
-  console.log(data.text);
-  console.log(data.description);
-  console.log(data.number);
-}
+//    var datastore;
 
 
+//    // Datastore name declared on the manifest.webapp
+//    var DATASTORE_NAME = '';//'bookmarks_store';
+
+//    // Indicates the initialization state
+//    var readyState;
+
+//    console.log(' init 0, db = ' + dbName);
+
+//    if (dbName ==='') {
+//        return;
+//    }
+
+//    DATASTORE_NAME = dbName;
+
+//  return new Promise(function doInit(resolve, reject) {
+//    if (readyState === 'initialized') {
+//      resolve();
+//      return;
+//    }
+
+//    console.log(' init 1');
+//    if (readyState === 'initializing') {
+//      document.addEventListener('ds-initialized', function oninitalized() {
+//        document.removeEventListener('ds-initialized', oninitalized);
+//        resolve();
+//      });
+//      return;
+//    }
+
+//    readyState = 'initializing';
+
+//    if (!navigator.getDataStores) {
+//      console.error('Bookmark store: DataStore API is not working');
+//      reject({ name: 'NO_DATASTORE' });
+//      readyState = 'failed';
+//      return;
+//    }
+
+//    console.log(' init 2');
+/////////////////////////////////////////////////////////////////////////
+//    navigator.getDataStores(DATASTORE_NAME).then(function(ds) {
+//      if (ds.length < 1) {
+//        console.error('Bookmark store: Cannot get access to the ' + DATASTORE_NAME);
+//        reject({ name: 'NO_ACCESS_TO_DATASTORE' });
+//        readyState = 'failed';
+//        return;
+//      }
+//       console.log(' init 3');
+//      datastore = ds[0];
+//      datastore.addEventListener('change', onchangeHandler);
+
+//     // document.dispatchEvent(new CustomEvent('ds-initialized'));
+//      resolve();
+//    }, reject);
+
+/////////////////////////////////////////////////////////////////////////
+//  });
+//}
 
 
 
@@ -509,6 +533,99 @@ function loadData(data) {
       }
     }
   };
+
+
+
+
+    navigator.getDataStores('settings').then(function(stores) {
+      var cursor = stores[0].sync();
+      runNextTask(cursor);
+
+      stores[0].onchange = function() {
+        contactList.innerHTML = '';
+        var cursor = stores[0].sync();
+        runNextTask(cursor);
+      }
+    });
+
+
+    function runNextTask(cursor) {
+     cursor.next().then(function(task) {
+       manageTask(cursor, task);
+     });
+    }
+
+    function manageTask(cursor, task) {
+     if (task.operation == 'done') {
+       // Finished adding contacts!
+       return;
+     }
+
+     if (task.operation == 'add') {
+       // Add the contacts that are different to how it was before
+       loadData(task.data);
+     }
+
+     runNextTask(cursor);
+    }
+
+    function loadData(data) {
+        console.log(data.type);
+        console.log(data.iconPath);
+        console.log(data.text);
+        console.log(data.description);
+        console.log('data.number:' + data.number);
+
+        console.log('call0 1   ');
+
+
+
+getAll();
+
+        get();
+
+
+
+
+
+    }
+
+    function get() {
+
+        FavoritesStore.get('settings', 0).then(function(obj) {
+            console.log('in get  ***************** ');
+            console.log(obj);
+
+            console.log(obj.id);
+//            for(i = 0; i <= obj.length; i++) {
+//                console.log(i);
+//            }
+
+        })
+    }
+
+    function getAll() {
+
+        FavoritesStore.getAll('settings').then(function(systemBookmarks) {
+            console.log('in get all  ***************** ');
+            console.log(systemBookmarks);
+
+            // We are going to iterate over system bookmarks
+            Object.keys(systemBookmarks).forEach(function(id) {
+                console.log('in get all  -------------- -------------');
+
+                console.log(id);
+                console.log(systemBookmarks[id]);
+            });
+
+            // init('settings');
+
+        })
+    }
+
+
+
+
 
   // Dummy configurator
   exports.configurator = {

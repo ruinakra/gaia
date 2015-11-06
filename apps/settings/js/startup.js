@@ -11,9 +11,9 @@
 
 
 var settingsInit = [
-  { type:"left", iconPath:"somefolder1/caller1.png", text:"this is text", description:"this is description", number:0 },
-  { type:"right", iconPath:"somefolder2/caller2.png", text:"this is text", description:"this is description", number:0 },
-  { type:"notification", iconPath:"", text:"missed calls", description:"this is description", number:5 }
+  { id: 7, type:"left", iconPath:"somefolder1/caller1.png", text:"this is text 1", description:"this is description", number:0 },
+  { id: 2, type:"right", iconPath:"somefolder2/caller2.png", text:"this is text 2", description:"this is description", number:0 },
+  { id: 1, type:"notification", iconPath:"", text:"missed calls 3", description:"this is description", number:5 }
 ]
 
 navigator.getDataStores('settings').then(function(stores) {
@@ -61,6 +61,8 @@ function addRecord(store, obj) {
 
 function displayExisting(id,data) {
   var myId = id;
+
+  console.log(data.id);
   console.log(data.type);
   console.log(data.iconPath);
   console.log(data.text);
