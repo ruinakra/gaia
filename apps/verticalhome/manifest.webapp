@@ -57,7 +57,7 @@
       "description": "Display collections"
     },
     "settings": {
-      "access" : "readonly",
+      "access" : "readwrite",
       "description": "The settings data store owned by the Settings app."
     }    
   },

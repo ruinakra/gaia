@@ -2,75 +2,174 @@
 
 (function(exports) {
 
-  var dataStoreName;
+    var dataStoreName;
+    var datastore;
 
-  function init(dbName) {
-    console.log("FavoritesStore::init(" + dbName + ")");
-    dataStoreName = dbName;
-    return;
-  }
+    // Indicates the initialization state
+    var readyState;
 
-  function getAllItems() {
-    console.log("FavoritesStore::getAllItems(" + dataStoreName + ")");
-    return;
-  }
+    function init(dbName) {
+        console.log("FavoritesStore::init(" + dbName + ")");
 
-  function insertItem(newItem, index) {
-    console.log("FavoritesStore::insertItem(" + dataStoreName + "), at:" + index);
-    return;
-  }
+        if (dbName ==='') {
+            return;
+        }
+        dataStoreName = dbName;
+    }
+    function doInitialize() {
+        return new Promise(function doInit(resolve, reject) {
+            if (readyState === 'initialized') {
+                resolve();
+                return;
+            }
 
-  function moveItem(currentIndex, newIndex) {
-    console.log("FavoritesStore::moveItem(" + dataStoreName +
-                "), from:" + currentIndex + ", to:" + newIndex);
-    return;
-  }
+            if (readyState === 'initializing') {
+                document.addEventListener('ds-initialized', function oninitalized() {
+                    document.removeEventListener('ds-initialized', oninitalized);
+                    resolve();
+                });
+                return;
+            }
 
-  function updateItem(newItem, index) {
-    console.log("FavoritesStore::updateItem(" + dataStoreName + "), at:" + index);
-    return;
-  }
+            readyState = 'initializing';
 
-  function deleteItem(index) {
-    console.log("FavoritesStore::deleteItem(" + dataStoreName + "), at:" + index);
-    return;
-  }
+            if (!navigator.getDataStores) {
+                console.error('Bookmark store: DataStore API is not working');
+                reject({ name: 'NO_DATASTORE' });
+                readyState = 'failed';
+                return;
+            }
 
-  function clearAllItems() {
-    console.log("FavoritesStore::clearAllItems(" + dataStoreName + ")");
-    return;
-  }
+            navigator.getDataStores(dataStoreName).then(function(ds) {
+                if (ds.length < 1) {
+                    console.error('Bookmark store: Cannot get access to the ' + dataStoreName);
+                    reject({ name: 'NO_ACCESS_TO_DATASTORE' });
+                    readyState = 'failed';
+                    return;
+                }
 
-  function addItemEventListener(callback) {
-    console.log("FavoritesStore::addItemEventListener(" + dataStoreName + ")");
-    return;
-  }
+                datastore = ds[0];
+                //datastore.addEventListener('change', onchangeHandler);
 
-  function removeItemEventListener(callback) {
-    console.log("FavoritesStore::removeItemEventListener(" + dataStoreName + ")");
-    return;
-  }
+                // document.dispatchEvent(new CustomEvent('ds-initialized'));
+                resolve();
+            }, reject);
 
-  function initActions(actions) {
-    console.log("FavoritesStore::initActions(" + dataStoreName + ")");
-    return;
-  }
+        });
+    }
 
-  function getAction(actionId) {
-    console.log("FavoritesStore::getAction(" + dataStoreName + "), ID:" + actionId);
-    return;
-  }
+    function doGetAll(resolve, reject) {
+        console.log(' doGetAll(),  datastore:' + dataStoreName)
+        //console.log(datastore)
 
-  function getAllActions() {
-    console.log("FavoritesStore::getActions(" + dataStoreName + ")");
-    return;
-  }
+        var result = Object.create(null);
+        var cursor = datastore.sync();
 
-  exports.FavoritesStore = {
-    // **************************************
-    // FavoritesStore API definition        *
-    // **************************************
-    /**
+        function cursorResolve(task) {
+            switch (task.operation) {
+            case 'update':
+            case 'add':
+                result[task.data.id] = task.data;
+                break;
+
+            case 'remove':
+                delete result[task.data.id];
+                break;
+
+            case 'clear':
+                result = Object.create(null);
+                break;
+
+            case 'done':
+                resolve(result);
+                return;
+            }
+
+            cursor.next().then(cursorResolve, reject);
+        }
+
+        cursor.next().then(cursorResolve, reject);
+    }
+
+    function getAllItems() {
+        console.log("FavoritesStore::getAllItems(" + dataStoreName + ")");
+
+        return new Promise(function (resolve, reject) {
+            doInitialize().then(doGetAll(resolve, reject), reject);
+        });
+    }
+
+    function insertItem(newItem, index) {
+        console.log("FavoritesStore::insertItem(" + dataStoreName + "), at:" + index);
+        return;
+    }
+
+    function moveItem(currentIndex, newIndex) {
+        console.log("FavoritesStore::moveItem(" + dataStoreName +
+                    "), from:" + currentIndex + ", to:" + newIndex);
+        return;
+    }
+
+    function updateItem(newItem, index) {
+        console.log("FavoritesStore::updateItem(" + dataStoreName + "), at:" + index);
+        return;
+    }
+
+    function deleteItem(index) {
+        console.log("FavoritesStore::deleteItem(" + dataStoreName + "), at:" + index);
+        return;
+    }
+
+    function clearAllItems() {
+        console.log("FavoritesStore::clearAllItems(" + dataStoreName + ")");
+
+        return new Promise(function doClear(resolve, reject) {
+            doInitialize().then(function onInitialized() {
+                // datastore.clear().then(resolve, reject);
+                datastore.clear().then(function(success) {
+                    if (success) {
+                        console.log(success)
+                    } else {
+                        getAll('settings')
+                    }
+
+
+                }, reject)
+
+            }, reject);
+        });
+    }
+
+    function addItemEventListener(callback) {
+        console.log("FavoritesStore::addItemEventListener(" + dataStoreName + ")");
+        return;
+    }
+
+    function removeItemEventListener(callback) {
+        console.log("FavoritesStore::removeItemEventListener(" + dataStoreName + ")");
+        return;
+    }
+
+    function initActions(actions) {
+        console.log("FavoritesStore::initActions(" + dataStoreName + ")");
+        return;
+    }
+
+    function getAction(actionId) {
+        console.log("FavoritesStore::getAction(" + dataStoreName + "), ID:" + actionId);
+        return;
+    }
+
+    function getAllActions() {
+        console.log("FavoritesStore::getActions(" + dataStoreName + ")");
+        return;
+    }
+
+    exports.FavoritesStore = {
+        // **************************************
+        // FavoritesStore API definition        *
+        // **************************************
+        /**
      * Initializes the favorites store object with provided application ID.
      *
      * @param{String} The application ID for the current favorites store object.
@@ -119,7 +218,7 @@
     /**
      * Removes all the favorites items in the store.
      */
-    clearAll: clearAllItems,
+    clearAllItems: clearAllItems,
 
     /**
      * Registers a new listener object to listen to updates in the store.

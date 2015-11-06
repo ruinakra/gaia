@@ -535,87 +535,47 @@
   };
 
 
+// FOR DEBUG
 
-
-    navigator.getDataStores('settings').then(function(stores) {
-      var cursor = stores[0].sync();
-      runNextTask(cursor);
-
-      stores[0].onchange = function() {
-        contactList.innerHTML = '';
-        var cursor = stores[0].sync();
-        runNextTask(cursor);
-      }
-    });
-
-
-    function runNextTask(cursor) {
-     cursor.next().then(function(task) {
-       manageTask(cursor, task);
-     });
-    }
-
-    function manageTask(cursor, task) {
-     if (task.operation == 'done') {
-       // Finished adding contacts!
-       return;
-     }
-
-     if (task.operation == 'add') {
-       // Add the contacts that are different to how it was before
-       loadData(task.data);
-     }
-
-     runNextTask(cursor);
-    }
-
-    function loadData(data) {
-        console.log(data.type);
-        console.log(data.iconPath);
-        console.log(data.text);
-        console.log(data.description);
-        console.log('data.number:' + data.number);
-
-        console.log('call0 1   ');
+    //clearAll();
 
 
 
-getAll();
+    //getAll();
 
-        get();
+    function clearAll() {
 
+        console.log('in clearAll     00000000000');
 
+        FavoritesStore.init('settings');
 
+        FavoritesStore.clearAllItems().then(function(obj1) {
 
+               console.log('in clearAll     11111111111111111');
 
-    }
+             //getAll()
 
-    function get() {
-
-        FavoritesStore.get('settings', 0).then(function(obj) {
-            console.log('in get  ***************** ');
-            console.log(obj);
-
-            console.log(obj.id);
-//            for(i = 0; i <= obj.length; i++) {
-//                console.log(i);
-//            }
 
         })
+        getAll()
+
     }
 
-    function getAll() {
 
-        FavoritesStore.getAll('settings').then(function(systemBookmarks) {
+    function getAll() {
+        //Favorites = new FavoritesStore();
+        FavoritesStore.init('settings');
+
+        FavoritesStore.getAllItems().then(function(obj) {
             console.log('in get all  ***************** ');
-            console.log(systemBookmarks);
+            console.log(obj);
 
             // We are going to iterate over system bookmarks
-            Object.keys(systemBookmarks).forEach(function(id) {
+            Object.keys(obj).forEach(function(id) {
                 console.log('in get all  -------------- -------------');
 
                 console.log(id);
-                console.log(systemBookmarks[id]);
+                console.log(obj[id]);
             });
 
             // init('settings');
