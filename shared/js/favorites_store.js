@@ -12,7 +12,8 @@
   /**
    * This is a constructor for favorites store objects.
    *
-   * @param{String} The application ID for the favorites store object.
+   * @param{String} itemsStoreName - The store ID for the favorites items.
+   * @param{String} actionsStoreName - The store ID for the actions items.
    */
   exports.FavoritesStore = function(itemsStoreName, actionsStoreName) {
     console.log("FavoritesStore::FavoritesStore: itemsStoreName:" + itemsStoreName +
