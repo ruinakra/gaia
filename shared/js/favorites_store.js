@@ -16,10 +16,28 @@
    * @param{String} actionsStoreName - The store ID for the actions items.
    */
   exports.FavoritesStore = function(favoritesStoreName, actionsStoreName) {
+    var self = this;
     console.log("FavoritesStore::FavoritesStore: favoritesStoreName:" + favoritesStoreName +
                 ", actionsStoreName:" + actionsStoreName);
     this.favoritesStore = navigator.getDataStores(favoritesStoreName);
     this.actionsStore = navigator.getDataStores(actionsStoreName);
+    this.callbacks = [];
+
+    function onFavoritesStoreChanged(event) {
+      self.getName().then(function(name) {
+        console.log("Store updated:" + name +
+                    ", ID:" + event.id +
+                    ", operation:" + event.operation);
+      });
+    }
+
+    this.favoritesStore.then(function(stores) {
+      if (stores.length > 0) {
+        var store = stores[0];
+        store.onchange = onFavoritesStoreChanged;
+        console.log("Registered listener, store name:" + store.name);
+      }
+    });
   }
 
   /**
@@ -173,6 +191,85 @@
         }
       });
     });
+  }
+
+  function onchangeHandler(event) {
+    var callbacks = listeners;
+    callbacks && callbacks.forEach(function iterCallback(callback) {
+      datastore.get(event.id).then(function got(result) {
+        callback.method.call(callback.context || this, { target: result || event });
+      });
+    });
+  }
+
+  /**
+   * Register the supplied listener for updates in the favorites store.
+   *
+   * @param{Function|Object} listener - The listener that receives notifications
+   *                                    about changes in the favorites store.
+   */
+  exports.FavoritesStore.prototype.addFavoritesEventListener = function(listener) {
+    this.callbacks.push(listener);
+  }
+
+  /**
+   * Unregister the supplied listener for updates in the favorites store.
+   *
+   * @param{Function|Object} listener - The listener to be removed/unregitered.
+   */
+  exports.FavoritesStore.prototype.removeFavoritesEventListener = function(callback) {
+    var index = this.callbacks.indexOf(callback);
+    if (index >= 0) {
+      this.callbacks.splice(index, 1);
+    }
+  }
+
+
+
+
+
+  function addEventListener(type, callback) {
+    var context;
+    if (!(type in listeners)) {
+      listeners[type] = [];
+    }
+
+    var cb = callback;
+    if (typeof cb === 'object') {
+      context = cb;
+      cb = cb.handleEvent;
+    }
+
+    if (cb) {
+      listeners[type].push({
+        method: cb,
+        context: context
+      });
+      init();
+    }
+  }
+
+  function removeEventListener(type, callback) {
+    if (!(type in listeners)) {
+      return false;
+    }
+
+    var callbacks = listeners[type];
+    var length = callbacks.length;
+    for (var i = 0; i < length; i++) {
+
+      var thisCallback = callback;
+      if (typeof thisCallback === 'object') {
+        thisCallback = callback.handleEvent;
+      }
+
+      if (callbacks[i] && callbacks[i].method === thisCallback) {
+        callbacks.splice(i, 1);
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
