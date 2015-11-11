@@ -4,7 +4,7 @@
  * Examples:
  * @code
  * var favsStore = new FavoritesStore('contacts_favorites');
- * var items = favsStore.getAllItems();
+ * var favorites = favsStore.getAllFavorites();
  */
 
 (function(exports) {
@@ -12,13 +12,13 @@
   /**
    * This is a constructor for favorites store objects.
    *
-   * @param{String} itemsStoreName - The store ID for the favorites items.
+   * @param{String} favoritesStoreName - The store ID for the favorites items.
    * @param{String} actionsStoreName - The store ID for the actions items.
    */
-  exports.FavoritesStore = function(itemsStoreName, actionsStoreName) {
-    console.log("FavoritesStore::FavoritesStore: itemsStoreName:" + itemsStoreName +
+  exports.FavoritesStore = function(favoritesStoreName, actionsStoreName) {
+    console.log("FavoritesStore::FavoritesStore: favoritesStoreName:" + favoritesStoreName +
                 ", actionsStoreName:" + actionsStoreName);
-    this.itemsStore = navigator.getDataStores(itemsStoreName);
+    this.favoritesStore = navigator.getDataStores(favoritesStoreName);
     this.actionsStore = navigator.getDataStores(actionsStoreName);
   }
 
@@ -26,7 +26,7 @@
    * Gets the name of the favorites store object.
    */
   exports.FavoritesStore.prototype.getName = function() {
-    var datastore = this.itemsStore;
+    var datastore = this.favoritesStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
@@ -43,17 +43,17 @@
   }
 
   /**
-   * Gets all the items in the current favorites store.
+   * Gets all the favorite items in the current store.
    */
-  exports.FavoritesStore.prototype.getAllItems = function() {
-    var datastore = this.itemsStore;
+  exports.FavoritesStore.prototype.getAllFavorites = function() {
+    var datastore = this.favoritesStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
         console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("FavoritesStore::getAllItems: name:" + store.name);
+          console.log("FavoritesStore::getAllFavorites: name:" + store.name);
           resolve(store.sync());
         } else {
           reject(new Error("No store"));
@@ -63,18 +63,18 @@
   }
 
   /**
-   * Deletes all the items in the current favorites store.
+   * Deletes all the favorite items in the current store.
    */
-  exports.FavoritesStore.prototype.clearAllItems = function() {
-    var datastore = this.itemsStore;
+  exports.FavoritesStore.prototype.clearAllFavorites = function() {
+    var datastore = this.favoritesStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
         console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("FavoritesStore::clearAllItems: owner:" + store.owner);
-          console.log("FavoritesStore::clearAllItems: readOnly:" + stores.readOnly);
+          console.log("FavoritesStore::clearAllFavorites: owner:" + store.owner);
+          console.log("FavoritesStore::clearAllFavorites: readOnly:" + stores.readOnly);
           store.clear().then(function(success) {
             if (success) {
               console.log("Success.");
@@ -100,7 +100,7 @@
    * @note Private method, should be used only for debug perposes.
    */
   exports.FavoritesStore.prototype.getStore = function() {
-    var datastore = this.itemsStore;
+    var datastore = this.favoritesStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
@@ -123,7 +123,7 @@
    * @param{Numeric} The optional index at which the item should be inserted.
    */
   exports.FavoritesStore.prototype.insertItem = function(item, index) {
-    var datastore = this.itemsStore;
+    var datastore = this.favoritesStore;
 
     if (index === undefined) {
       console.log("Index is undefined");
