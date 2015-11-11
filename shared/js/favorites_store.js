@@ -54,7 +54,31 @@
         if (stores.length > 0) {
           var store = stores[0];
           console.log("FavoritesStore::getAllFavorites: name:" + store.name);
-          resolve(store.sync());
+
+          var result = {};
+          var cursor = store.sync();
+
+          function cursorResolve(task) {
+            switch (task.operation) {
+            case 'update':
+            case 'add':
+              result[task.data.id] = task.data;
+              break;
+            case 'remove':
+              delete result[task.data.id];
+              break;
+            case 'clear':
+              result = {};
+              break;
+            case 'done':
+              resolve(result);
+              return;
+            }
+
+            cursor.next().then(cursorResolve, reject);
+          }
+          cursor.next().then(cursorResolve, reject);
+
         } else {
           reject(new Error("No store"));
         }
@@ -159,18 +183,21 @@
    * @param{String} The image URL for the favorites item.
    * @param{String} The icon URL for the favorites item.
    * @param{Array} The array of action IDs for this favorites item.
+   * @param{String} The application-specific ID.
    */
-  exports.FavoritesItem = function(title, subTitle, image, icon, actionIds) {
+  exports.FavoritesItem = function(title, subTitle, image, icon, actionIds, clientId) {
     console.log("FavoritesItem::FavoritesItem: title:" + title +
                 ", subTitle:" + subTitle +
                 ", image:" + image +
                 ", icon:" + icon +
-                ", actionIds:" + actionIds);
+                ", actionIds:" + actionIds +
+                ", clientId:" + clientId);
     this.title = title;
     this.subTitle = subTitle;
     this.image = image;
     this.icon = icon;
     this.actionIds = actionIds;
+    this.clientId = clientId;
   }
 
 })(window);
