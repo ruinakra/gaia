@@ -14,16 +14,18 @@
    *
    * @param{String} The application ID for the favorites store object.
    */
-  exports.FavoritesStore = function(applicationId) {
-    console.log("FavoritesStore::FavoritesStore:" + applicationId);
-    this.datastore = navigator.getDataStores(applicationId);
+  exports.FavoritesStore = function(itemsStoreName, actionsStoreName) {
+    console.log("FavoritesStore::FavoritesStore: itemsStoreName:" + itemsStoreName +
+                ", actionsStoreName:" + actionsStoreName);
+    this.itemsStore = navigator.getDataStores(itemsStoreName);
+    this.actionsStore = navigator.getDataStores(actionsStoreName);
   }
 
   /**
    * Gets the name of the favorites store object.
    */
   exports.FavoritesStore.prototype.getName = function() {
-    var datastore = this.datastore;
+    var datastore = this.itemsStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
@@ -43,7 +45,7 @@
    * Gets all the items in the current favorites store.
    */
   exports.FavoritesStore.prototype.getAllItems = function() {
-    var datastore = this.datastore;
+    var datastore = this.itemsStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
@@ -63,7 +65,7 @@
    * Deletes all the items in the current favorites store.
    */
   exports.FavoritesStore.prototype.clearAllItems = function() {
-    var datastore = this.datastore;
+    var datastore = this.itemsStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
@@ -97,7 +99,7 @@
    * @note Private method, should be used only for debug perposes.
    */
   exports.FavoritesStore.prototype.getStore = function() {
-    var datastore = this.datastore;
+    var datastore = this.itemsStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
@@ -120,7 +122,7 @@
    * @param{Numeric} The optional index at which the item should be inserted.
    */
   exports.FavoritesStore.prototype.insertItem = function(item, index) {
-    var datastore = this.datastore;
+    var datastore = this.itemsStore;
 
     if (index === undefined) {
       console.log("Index is undefined");
@@ -146,20 +148,6 @@
         }
       });
     });
-  }
-
-  /**
-   * Test method, to be removed.
-   */
-  exports.FavoritesStore.prototype.getName1 = function() {
-    return this.datastore.name();
-  }
-
-  /**
-   * Test method, to be removed.
-   */
-  exports.FavoritesStore.prototype.getName2 = function() {
-    return this.datastore.toString();
   }
 
   /**
