@@ -244,6 +244,69 @@
         var item = items.find(function(item) {
           return item && (item.getIndex() === index);
         });
+        if (!item || (item.getIndex() != index)) {
+          reject(new Error("Item not found"));
+          return;
+        }
+
+        self.favoritesStore.then(function(stores) {
+          if (stores.length < 1) {
+            reject(new Error("No store"));
+            return;
+          }
+          var store = stores[0];
+          var maxIndex = (items.length - 1);
+          var lastId = items[maxIndex].getId();
+          if (index === maxIndex) {
+            // Removing the last item in the array.
+            store.remove(lastId).then(function(success) {
+              console.log("Removed last item, success:" + success);
+              resolve(success);
+            });
+          } else {
+            while (index != maxIndex) {
+              var next = (index + 1);
+              var nextItem = items[next];
+              nextItem.setIndex(index);
+              store.put(nextItem, items[index].getId()).then(function(id) {
+                console.log("Put:" + id + ", last:" + lastId);
+                if (id == lastId) {
+                  // Moved the last item, delete it
+                  store.remove(lastId).then(function(success) {
+                    console.log("Success:" + success);
+                    resolve(success);
+                  });
+                }
+              });
+
+              // Move to the next item.
+              index = next;
+            }
+          }
+        }).catch(function(reason) {
+          console.log("Failed getting the favorites store.");
+          reject(reason);
+        });
+      }).catch(function(reason) {
+        console.log("Failed getting favorite items.");
+        reject(reason);
+      });
+    });
+  }
+
+  /**
+   * Request to update existing favorites item in the favorites store.
+   *
+   * @param{Object} item - The updated favorites item.
+   * @param{Numeric} index - The index of the item to be updated.
+   */
+  exports.FavoritesStore.prototype.updateFavoritesItem = function(item, index) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      self.getAllFavorites().then(function(items) {
+        var item = items.find(function(item) {
+          return item && (item.getIndex() === index);
+        });
 
         if (item && (item.getIndex() === index)) {
           self.favoritesStore.then(function(stores) {
@@ -253,13 +316,23 @@
             }
             var store = stores[0];
             var storeId = item.getId();
-            store.remove(storeId).then(function(success) {
-              resolve(success);
+            store.put(item, storeId).then(function(id) {
+              console.log("Updated:" + id);
+              resolve(id);
+            }).catch(function(reason) {
+              console.log("Failed removing item");
+              reject(reason);
             });
+          }).catch(function(reason) {
+            console.log("Failed getting the favorites store.");
+            reject(reason);
           });
         } else {
           reject(new Error("Item not found"));
         }
+      }).catch(function(reason) {
+        console.log("Failed getting favorite items.");
+        reject(reason);
       });
     });
   }
