@@ -73,20 +73,25 @@
           var store = stores[0];
           console.log("FavoritesStore::getAllFavorites: name:" + store.name);
 
-          var result = {};
+          var result = [];
           var cursor = store.sync();
 
           function cursorResolve(task) {
             switch (task.operation) {
             case 'update':
             case 'add':
-              result[task.data.index] = task.data;
+              var item = new FavoritesItem(task.data.title, task.data.subTitle,
+                                           task.data.image, task.data.icon,
+                                           task.data.actionIds, task.data.clientId);
+              item.setIndex(task.data.index);
+              item.setId(task.id);
+              result[task.data.index] = item;
               break;
             case 'remove':
               delete result[task.data.index];
               break;
             case 'clear':
-              result = {};
+              result = [];
               break;
             case 'done':
               resolve(result);
@@ -193,7 +198,7 @@
     });
   }
 
-exports.FavoritesStore.prototype.insertItem2 = function(item, index) {
+  exports.FavoritesStore.prototype.insertItem2 = function(item, index) {
     console.log("START insertItem2");
 
     var datastore = this.favoritesStore;
@@ -224,8 +229,40 @@ exports.FavoritesStore.prototype.insertItem2 = function(item, index) {
       {
         console.log('  INSERT')
       }
-  });
-}
+    });
+  }
+
+  /**
+   * Request to delete existing favorites item in the favorites store.
+   *
+   * @param{Numeric} index - The index of the item to be removed.
+   */
+  exports.FavoritesStore.prototype.deleteFavoritesItem = function(index) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      self.getAllFavorites().then(function(items) {
+        var item = items.find(function(item) {
+          return item && (item.getIndex() === index);
+        });
+
+        if (item && (item.getIndex() === index)) {
+          self.favoritesStore.then(function(stores) {
+            if (stores.length < 0) {
+              reject(new Error("No store"));
+              return;
+            }
+            var store = stores[0];
+            var storeId = item.getId();
+            store.remove(storeId).then(function(success) {
+              resolve(success);
+            });
+          });
+        } else {
+          reject(new Error("Item not found"));
+        }
+      });
+    });
+  }
 
   function onchangeHandler(event) {
     var callbacks = listeners;
@@ -338,6 +375,14 @@ exports.FavoritesStore.prototype.insertItem2 = function(item, index) {
 
   exports.FavoritesItem.prototype.getIndex = function(index) {
     return this.index;
+  }
+
+  exports.FavoritesItem.prototype.setId = function(id) {
+    this.storeId = id;
+  }
+
+  exports.FavoritesItem.prototype.getId = function() {
+    return this.storeId;
   }
 
 })(window);
