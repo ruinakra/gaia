@@ -80,10 +80,10 @@
             switch (task.operation) {
             case 'update':
             case 'add':
-              result[task.data.id] = task.data;
+              result[task.data.index] = task.data;
               break;
             case 'remove':
-              delete result[task.data.id];
+              delete result[task.data.index];
               break;
             case 'clear':
               result = {};
@@ -193,6 +193,40 @@
     });
   }
 
+exports.FavoritesStore.prototype.insertItem2 = function(item, index) {
+    console.log("START insertItem2");
+
+    var datastore = this.favoritesStore;
+
+    if (index === undefined) {
+      console.log("Index is undefined");
+    } else {
+      console.log("Index is: " + index);
+    }
+
+    this.getAllFavorites().then(function(items) {
+      var itemsCount = Object.keys(items).length
+      console.log('itemsCount = ' + itemsCount)
+
+      if (index === undefined || index >= itemsCount) // uppend
+      {
+        console.log('  UPPEND')
+      }
+      else if (index < 0) // prepend
+      {
+        console.log('  PREPEND')
+//            item.setIndex(0);
+//            var i = 1;
+//            items.forEach(function(item) { item.setIndex(i++); });
+//            var newItems = [item] + items;
+        }
+      else if (index < itemsCount) // insert
+      {
+        console.log('  INSERT')
+      }
+  });
+}
+
   function onchangeHandler(event) {
     var callbacks = listeners;
     callbacks && callbacks.forEach(function iterCallback(callback) {
@@ -295,6 +329,15 @@
     this.icon = icon;
     this.actionIds = actionIds;
     this.clientId = clientId;
+    this.index = -1;
+  }
+
+  exports.FavoritesItem.prototype.setIndex = function(index) {
+    this.index = index;
+  }
+
+  exports.FavoritesItem.prototype.getIndex = function(index) {
+    return this.index;
   }
 
 })(window);
