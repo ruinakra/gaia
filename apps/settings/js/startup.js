@@ -11,10 +11,10 @@
 
 
 var settingsInit = [
-  { id: 7, type:"left", iconPath:"somefolder1/caller1.png", text:"this is text 1", description:"this is description", number:0 },
-  { id: 2, type:"right", iconPath:"somefolder2/caller2.png", text:"this is text 2", description:"this is description", number:0 },
-  { id: 1, type:"notification", iconPath:"", text:"missed calls 3", description:"this is description", number:5 },
-  { index: 3, type:"text 3", iconPath:"somefolder2/caller2.png", text:"this is text 3", description:"this is description", number:0 }
+  { index: 0, icon:"somefolder1/caller1.png", title:"this is text 1", subTitle:"this is description" },
+  { index: 1, icon:"somefolder2/caller2.png", title:"this is text 2", subTitle:"this is description" },
+  { index: 2, icon:"", title:"missed calls 3", subTitle:"this is description" },
+  { index: 3, icon:"somefolder2/caller2.png", title:"this is text 3", subTitle:"this is description" }
 ]
 
 navigator.getDataStores('settings').then(function(stores) {
