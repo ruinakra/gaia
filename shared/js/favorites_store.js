@@ -359,28 +359,29 @@
           return item && (item.getIndex() === index);
         });
 
-        if (item && (item.getIndex() === index)) {
-          self.favoritesStore.then(function(stores) {
-            if (stores.length < 0) {
-              reject(new Error("No store"));
-              return;
-            }
-            var store = stores[0];
-            var storeId = item.getId();
-            store.put(item, storeId).then(function(id) {
-              console.log("Updated:" + id);
-              resolve(id);
-            }).catch(function(reason) {
-              console.log("Failed removing item");
-              reject(reason);
-            });
+        if (!item || (item.getIndex() != index)) {
+          reject(new Error("Item not found"));
+          return;
+        }
+
+        self.favoritesStore.then(function(stores) {
+          if (stores.length < 1) {
+            reject(new Error("No store"));
+            return;
+          }
+          var store = stores[0];
+          var storeId = item.getId();
+          store.put(item, storeId).then(function(id) {
+            console.log("Updated:" + id);
+            resolve(id);
           }).catch(function(reason) {
-            console.log("Failed getting the favorites store.");
+            console.log("Failed removing item");
             reject(reason);
           });
-        } else {
-          reject(new Error("Item not found"));
-        }
+        }).catch(function(reason) {
+          console.log("Failed getting the favorites store.");
+          reject(reason);
+        });
       }).catch(function(reason) {
         console.log("Failed getting favorite items.");
         reject(reason);
