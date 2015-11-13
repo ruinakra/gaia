@@ -64,11 +64,10 @@ function displayExisting(id,data) {
   var myId = id;
 
   console.log(data.index);
-  console.log(data.type);
-  console.log(data.iconPath);
-  console.log(data.text);
-  console.log(data.description);
-  console.log(data.number);
+  console.log(data.icon);
+  console.log(data.title);
+  console.log(data.subTitle);
+
 
 }
 

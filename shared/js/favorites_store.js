@@ -95,6 +95,8 @@
               break;
             case 'done':
               resolve(result);
+                var arrayCount = result.length;
+                console.log('arrayCount = ' + arrayCount)
               return;
             }
 
@@ -168,70 +170,112 @@
    *
    * @param{Object} The object to be inserted into the favorites store.
    * @param{Numeric} The optional index at which the item should be inserted.
+   *                If the index is too big or undefined then a newItem will be insert to the end of array.
+   *                If the index is negative then a newItem will be insert to the begin of array.
    */
-  exports.FavoritesStore.prototype.insertItem = function(item, index) {
-    var datastore = this.favoritesStore;
-
+  exports.FavoritesStore.prototype.insertItem = function(newItem, index) {
+    console.log("START insertItem");
     if (index === undefined) {
-      console.log("Index is undefined");
+        console.log("Index is undefined");
     } else {
-      console.log("Index is:" + index);
+        console.log("Index is: " + index);
     }
 
+    var self = this;
+    var datastore = this.favoritesStore;
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
         console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("FavoritesStore::getName: name:" + store.name);
-          store.add(item, index).then(function(id) {
-            console.log("Item added, id:" + id);
-            resolve(id);
-          }).catch(function(reason) {
-            console.log("Failed to add the item, reason:" + reason);
-            reject(reason);
-          });
+          console.log("FavoritesStore::getAllFavorites: name:" + store.name);
+
+          self.getAllFavorites().then(function(items) {
+            console.log(' ================================== items getted !')
+            var itemsCount = items.length;
+            console.log('itemsCount = ' + itemsCount)
+
+            if (index === undefined || index >= itemsCount) // append
+            {
+              console.log('  APPEND')
+              newItem.setIndex(++itemsCount);
+              store.add(newItem).then(function(newId) {
+                console.log('added id: ' + newId);
+                resolve(newId);
+              }).catch(function(reason) {
+                console.log("Failed to APPEND, reason:" + reason);
+                reject(new Error("Failed to append"));
+              });
+            }
+            else if (index < 0) // prepend
+            {
+              console.log('  PREPEND')
+
+              newItem.setIndex(0);
+
+              items.forEach(function(item) {
+                var currIndex = item.getIndex();
+                item.setIndex(++currIndex);
+                console.log("__ currIndex: " + currIndex);
+
+                store.put(item, item.getId()).then(function(id) {
+                  console.log("__ updated id: " + id);
+                }).catch(function(reason) {
+                  console.log("Failed to put, reason:" + reason);
+                  reject(new Error("Failed to prepend"));
+                });
+              });
+
+              store.add(newItem).then(function(newId) {
+                console.log('added id: ' + newId);
+                resolve(newId);
+              }).catch(function(reason) {
+                console.log("Failed to PREPEND, reason:" + reason);
+                reject(new Error("Failed to add"));
+              });
+            }
+            else if (index < itemsCount) // insert
+            {
+              console.log('  INSERT')
+              var foundItem = items.find(function(item) {
+                return item && (item.getIndex() === index);
+              });
+
+              if (foundItem && (foundItem.getIndex() === index)) {
+                console.log("foundItem.Index : " + foundItem.getIndex());
+                console.log("foundItem.Id    : " + foundItem.getId());
+
+                newItem.setIndex(index);
+
+                for (var i = index; i < items.length; i++) {
+                  var tempItem = items[i];
+                  tempItem.setIndex(tempItem.getIndex() + 1);
+
+                  store.put(tempItem, tempItem.getId()).then(function(id) {
+                    console.log("__ updated id: " + id);
+                  }).catch(function(reason) {
+                    console.log("Failed to put, reason:" + reason);
+                    reject(new Error("Failed to insert"));
+                  });
+                }
+
+                store.add(newItem).then(function(newId) {
+                  console.log('added id: ' + newId);
+                  resolve(newId);
+                }).catch(function(reason) {
+                   console.log("Failed to INSERT, reason:" + reason);
+                   reject(new Error("Failed to add"));
+                });
+              }
+            }
+          })
         } else {
-          reject(new Error("No store"));
+           console.log("incorrect store");
+           reject(new Error("incorrect store"));
         }
-      });
-    });
+      })
+    })
   }
-
-  exports.FavoritesStore.prototype.insertItem2 = function(item, index) {
-    console.log("START insertItem2");
-
-    var datastore = this.favoritesStore;
-
-    if (index === undefined) {
-      console.log("Index is undefined");
-    } else {
-      console.log("Index is: " + index);
-    }
-
-    this.getAllFavorites().then(function(items) {
-      var itemsCount = Object.keys(items).length
-      console.log('itemsCount = ' + itemsCount)
-
-      if (index === undefined || index >= itemsCount) // uppend
-      {
-        console.log('  UPPEND')
-      }
-      else if (index < 0) // prepend
-      {
-        console.log('  PREPEND')
-//            item.setIndex(0);
-//            var i = 1;
-//            items.forEach(function(item) { item.setIndex(i++); });
-//            var newItems = [item] + items;
-        }
-      else if (index < itemsCount) // insert
-      {
-        console.log('  INSERT')
-      }
-    });
-  }
-
   /**
    * Request to delete existing favorites item in the favorites store.
    *
@@ -433,13 +477,13 @@
                 ", icon:" + icon +
                 ", actionIds:" + actionIds +
                 ", clientId:" + clientId);
+    this.index = -1;
     this.title = title;
     this.subTitle = subTitle;
     this.image = image;
     this.icon = icon;
     this.actionIds = actionIds;
     this.clientId = clientId;
-    this.index = -1;
   }
 
   exports.FavoritesItem.prototype.setIndex = function(index) {
