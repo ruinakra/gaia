@@ -306,6 +306,8 @@
             store.remove(lastId).then(function(success) {
               console.log("Removed last item, success:" + success);
               resolve(success);
+            }).catch(function(reason) {
+              reject(reason);
             });
           } else {
             var beforeLastItemId = items[maxIndex - 1].getId();
@@ -320,8 +322,12 @@
                   store.remove(lastId).then(function(success) {
                     console.log("Success:" + success);
                     resolve(success);
+                  }).catch(function(reason) {
+                    reject(reason);
                   });
                 }
+              }).catch(function(reason) {
+                reject(reason);
               });
 
               // Move to the next item.
