@@ -351,7 +351,7 @@
    * @param{Object} item - The updated favorites item.
    * @param{Numeric} index - The index of the item to be updated.
    */
-  exports.FavoritesStore.prototype.updateFavoritesItem = function(item, index) {
+  exports.FavoritesStore.prototype.updateFavoritesItem = function(newItem, index) {
     var self = this;
     return new Promise(function(resolve, reject) {
       self.getAllFavorites().then(function(items) {
@@ -371,7 +371,8 @@
           }
           var store = stores[0];
           var storeId = item.getId();
-          store.put(item, storeId).then(function(id) {
+          newItem.setIndex(index);
+          store.put(newItem, storeId).then(function(id) {
             console.log("Updated:" + id);
             resolve(id);
           }).catch(function(reason) {
