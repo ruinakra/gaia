@@ -11,11 +11,14 @@
 
 
 var settingsInit = [
-  { index: 0, icon:"somefolder1/caller1.png", title:"this is text 1", subTitle:"this is description" },
-  { index: 1, icon:"somefolder2/caller2.png", title:"this is text 2", subTitle:"this is description" },
-  { index: 2, icon:"", title:"missed calls 3", subTitle:"this is description" },
-  { index: 3, icon:"somefolder2/caller2.png", title:"this is text 3", subTitle:"this is description" }
+  { index: 0, title:"this is text 1", subTitle:"this is description", image:"somefolder1/image1.png", icon:"somefolder1/caller1.png", actionIds:[1,2,3], clientId: "3180" },
+  { index: 1, title:"this is text 2", subTitle:"this is description", image:"somefolder1/image2.png", icon:"somefolder1/caller1.png", actionIds:[4,2,3], clientId: "4488" },
+  { index: 2, title:"this is text 3", subTitle:"this is description", image:"somefolder1/image3.png", icon:"somefolder1/caller1.png", actionIds:[7,2,7], clientId: "5259" },
+  { index: 3, title:"this is text 4", subTitle:"this is description", image:"somefolder1/image4.png", icon:"somefolder1/caller1.png", actionIds:[1,8,3], clientId: "9876" },
+  { index: 4, title:"this is text 5", subTitle:"this is description", image:"somefolder1/image5.png", icon:"somefolder1/caller1.png", actionIds:[2,9,9], clientId: "1234" },
+  { index: 5, title:"this is text 6", subTitle:"this is description", image:"somefolder1/image6.png", icon:"somefolder1/caller1.png", actionIds:[6,2,4], clientId: "0631" },
 ]
+
 
 navigator.getDataStores('settings').then(function(stores) {
   stores[0].getLength().then(function(storeLength) {
