@@ -4,6 +4,82 @@
           PinnedAppsManager, MoreAppsNavigation */
 /* global requestAnimationFrame */
 
+
+
+
+
+
+
+
+//function init(dbName) {
+
+//    var datastore;
+
+
+//    // Datastore name declared on the manifest.webapp
+//    var DATASTORE_NAME = '';//'bookmarks_store';
+
+//    // Indicates the initialization state
+//    var readyState;
+
+//    console.log(' init 0, db = ' + dbName);
+
+//    if (dbName ==='') {
+//        return;
+//    }
+
+//    DATASTORE_NAME = dbName;
+
+//  return new Promise(function doInit(resolve, reject) {
+//    if (readyState === 'initialized') {
+//      resolve();
+//      return;
+//    }
+
+//    console.log(' init 1');
+//    if (readyState === 'initializing') {
+//      document.addEventListener('ds-initialized', function oninitalized() {
+//        document.removeEventListener('ds-initialized', oninitalized);
+//        resolve();
+//      });
+//      return;
+//    }
+
+//    readyState = 'initializing';
+
+//    if (!navigator.getDataStores) {
+//      console.error('Bookmark store: DataStore API is not working');
+//      reject({ name: 'NO_DATASTORE' });
+//      readyState = 'failed';
+//      return;
+//    }
+
+//    console.log(' init 2');
+/////////////////////////////////////////////////////////////////////////
+//    navigator.getDataStores(DATASTORE_NAME).then(function(ds) {
+//      if (ds.length < 1) {
+//        console.error('Bookmark store: Cannot get access to the ' + DATASTORE_NAME);
+//        reject({ name: 'NO_ACCESS_TO_DATASTORE' });
+//        readyState = 'failed';
+//        return;
+//      }
+//       console.log(' init 3');
+//      datastore = ds[0];
+//      datastore.addEventListener('change', onchangeHandler);
+
+//     // document.dispatchEvent(new CustomEvent('ds-initialized'));
+//      resolve();
+//    }, reject);
+
+/////////////////////////////////////////////////////////////////////////
+//  });
+//}
+
+
+
+
+
+
 (function(exports) {
 
   // Hidden manifest roles that we do not show
@@ -414,6 +490,59 @@
       }
     }
   };
+
+
+// FOR DEBUG
+
+    //clearAll();
+
+
+
+    //getAll();
+
+    function clearAll() {
+
+        console.log('in clearAll     00000000000');
+
+        FavoritesStore.init('settings');
+
+        FavoritesStore.clearAllItems().then(function(obj1) {
+
+               console.log('in clearAll     11111111111111111');
+
+             //getAll()
+
+
+        })
+        getAll()
+
+    }
+
+
+    function getAll() {
+        //Favorites = new FavoritesStore();
+        FavoritesStore.init('settings');
+
+        FavoritesStore.getAllItems().then(function(obj) {
+            console.log('in get all  ***************** ');
+            console.log(obj);
+
+            // We are going to iterate over system bookmarks
+            Object.keys(obj).forEach(function(id) {
+                console.log('in get all  -------------- -------------');
+
+                console.log(id);
+                console.log(obj[id]);
+            });
+
+            // init('settings');
+
+        })
+    }
+
+
+
+
 
   // Dummy configurator
   exports.configurator = {
