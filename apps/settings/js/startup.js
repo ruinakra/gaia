@@ -8,6 +8,73 @@
  *
  * @module InitialPanelHandler
  */
+
+
+var settingsInit = [
+  { index: 0, title:"this is text 1", subTitle:"this is description", image:"somefolder1/image1.png", icon:"somefolder1/caller1.png", actionIds:[1,2,3], clientId: "3180" },
+  { index: 1, title:"this is text 2", subTitle:"this is description", image:"somefolder1/image2.png", icon:"somefolder1/caller1.png", actionIds:[4,2,3], clientId: "4488" },
+  { index: 2, title:"this is text 3", subTitle:"this is description", image:"somefolder1/image3.png", icon:"somefolder1/caller1.png", actionIds:[7,2,7], clientId: "5259" },
+  { index: 3, title:"this is text 4", subTitle:"this is description", image:"somefolder1/image4.png", icon:"somefolder1/caller1.png", actionIds:[1,8,3], clientId: "9876" },
+  { index: 4, title:"this is text 5", subTitle:"this is description", image:"somefolder1/image5.png", icon:"somefolder1/caller1.png", actionIds:[2,9,9], clientId: "1234" },
+  { index: 5, title:"this is text 6", subTitle:"this is description", image:"somefolder1/image6.png", icon:"somefolder1/caller1.png", actionIds:[6,2,4], clientId: "0631" },
+]
+
+
+navigator.getDataStores('settings').then(function(stores) {
+  stores[0].getLength().then(function(storeLength) {
+    if(storeLength == 0) {
+      for(i = 0; i < settingsInit.length; i++) {
+        addRecord(stores[0],settingsInit[i]);  
+      }; 
+    } else {
+      var cursor = stores[0].sync();
+      runNextTask(cursor);
+    }
+  });
+});
+
+function runNextTask(cursor) {
+ cursor.next().then(function(task) {
+   manageTask(cursor, task);
+ });
+}
+
+function manageTask(cursor, task) {
+  if (task.operation == 'done') {
+    // Finished adding contacts!
+    return;
+  }
+
+  if (task.operation == 'add') {
+    // Add the contacts that are different to how it was before
+    displayExisting(task.id, task.data);
+  }
+
+  runNextTask(cursor);
+}
+
+function addRecord(store, obj) {
+  store.add(obj).then(function(id) {
+
+    var myId = id;
+    console.log(myId);
+
+
+  });
+}
+
+function displayExisting(id,data) {
+  var myId = id;
+
+  console.log(data.index);
+  console.log(data.title);
+  console.log(data.subTitle);
+  console.log(data.image);
+  console.log(data.icon);
+  console.log(data.actionIds);
+  console.log(data.clientId);
+}
+
 (function(exports) {
   'use strict';
 
