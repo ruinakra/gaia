@@ -308,13 +308,14 @@
               resolve(success);
             });
           } else {
+            var beforeLastItemId = items[maxIndex - 1].getId();
             while (index != maxIndex) {
               var next = (index + 1);
               var nextItem = items[next];
               nextItem.setIndex(index);
               store.put(nextItem, items[index].getId()).then(function(id) {
                 console.log("Put:" + id + ", last:" + lastId);
-                if (id == lastId) {
+                if (id == beforeLastItemId) {
                   // Moved the last item, delete it
                   store.remove(lastId).then(function(success) {
                     console.log("Success:" + success);
