@@ -76,7 +76,7 @@
           var result = [];
           var cursor = store.sync();
 
-          function cursorResolve(task) {
+          var cursorResolve = function(task) {
             switch (task.operation) {
             case 'update':
             case 'add':
