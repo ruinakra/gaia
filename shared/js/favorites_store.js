@@ -24,17 +24,30 @@
     this.callbacks = [];
     this.actions = [];
 
-    function onFavoritesStoreChanged(event) {
-      self.getName().then(function(name) {
-        console.log("Store updated:" + name +
-                    ", ID:" + event.id +
-                    ", operation:" + event.operation);
-      });
-    }
-
     this.favoritesStore.then(function(stores) {
       if (stores.length > 0) {
         var store = stores[0];
+
+        var onFavoritesStoreChanged = function(event) {
+          console.log("Store event:" + event.operation);
+          if (event.operation == "removed") {
+            console.log("Store update: removed:" + event.id);
+            reportFavoritesStoreUpdate.call(self, exports.FavoritesChangeEvent.OperationEnum.removed, event.id);
+          } else if (event.operation == "cleared") {
+            reportFavoritesStoreUpdate.call(self, exports.FavoritesChangeEvent.OperationEnum.cleared, -1);
+          } else {
+            self._getFavoritesItem(event.id).then(function(item) {
+              console.log("Got item:" + item.index);
+              console.log("--- clientId:" + item.clientId + ", id:" + event.id);
+              reportFavoritesStoreUpdate.call(self, (event.operation == "added") ?
+                exports.FavoritesChangeEvent.OperationEnum.added : exports.FavoritesChangeEvent.OperationEnum.updated,
+                item.clientId);
+            }).catch(function(reason) {
+              console.log("Failed, reason:" + reason.message);
+            });
+          }
+        }
+
         store.onchange = onFavoritesStoreChanged;
         console.log("Registered listener, store name:" + store.name);
       }
@@ -190,6 +203,31 @@
           var store = stores[0];
           console.log("FavoritesStore::getName: name:" + store.name);
           resolve(store.name);
+        } else {
+          reject(new Error("No store"));
+        }
+      });
+    });
+  }
+
+  exports.FavoritesStore.prototype._getFavoritesItem = function(storeId) {
+    var datastore = this.favoritesStore;
+
+    return new Promise(function(resolve, reject) {
+      datastore.then(function(stores) {
+        if (stores.length > 0) {
+          var store = stores[0];
+
+          store.get(storeId).then(function(storeItem) {
+            var item = new FavoritesItem(storeItem.title, storeItem.subTitle,
+                                         storeItem.image, storeItem.icon,
+                                         storeItem.actionIds, storeItem.clientId);
+            item.setId(storeId);
+            item.setIndex(storeItem.index);
+            resolve(item);
+          }).catch(function(reason) {
+            reject(reason);
+          });
         } else {
           reject(new Error("No store"));
         }
@@ -641,57 +679,18 @@
    */
   exports.FavoritesStore.prototype.removeFavoritesEventListener = function(callback) {
     var index = this.callbacks.indexOf(callback);
+    console.log("Item found at:" + index);
     if (index >= 0) {
       this.callbacks.splice(index, 1);
     }
   }
 
-
-
-
-
-  function addEventListener(type, callback) {
-    var context;
-    if (!(type in listeners)) {
-      listeners[type] = [];
-    }
-
-    var cb = callback;
-    if (typeof cb === 'object') {
-      context = cb;
-      cb = cb.handleEvent;
-    }
-
-    if (cb) {
-      listeners[type].push({
-        method: cb,
-        context: context
-      });
-      init();
-    }
-  }
-
-  function removeEventListener(type, callback) {
-    if (!(type in listeners)) {
-      return false;
-    }
-
-    var callbacks = listeners[type];
-    var length = callbacks.length;
-    for (var i = 0; i < length; i++) {
-
-      var thisCallback = callback;
-      if (typeof thisCallback === 'object') {
-        thisCallback = callback.handleEvent;
-      }
-
-      if (callbacks[i] && callbacks[i].method === thisCallback) {
-        callbacks.splice(i, 1);
-        return true;
-      }
-    }
-
-    return false;
+  function reportFavoritesStoreUpdate(operation, id) {
+    console.log("Reporting favorites store udpate, operation:" + operation +
+                ", id:" + id);
+    this.callbacks.forEach(function(item) {
+      item(operation, id);
+    });
   }
 
   /**
@@ -736,6 +735,24 @@
     return this.storeId;
   }
 
+  /**
+   * This is a constructor for objects describing changes in the favorites store.
+   *
+   * @param{Numeric} index - The index of the updated item.
+   * @param{Object} operation - Object of class 'FavoritesChangeEvent.OperationEnum'
+   *                            describing the current update.
+   */
+  exports.FavoritesChangeEvent = function(index, operation) {
+    this.index = index;
+    this.operation = operation;
+  }
+
+  exports.FavoritesChangeEvent.OperationEnum = {
+    "added" : 1,
+    "updated" : 2,
+    "removed" : 3,
+    "cleared" : 4,
+  };
 
   /**
    * This is a constructor for actions item objects.
