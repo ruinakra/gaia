@@ -22,6 +22,7 @@
     this.favoritesStore = navigator.getDataStores(favoritesStoreName);
     this.actionsStore = navigator.getDataStores(actionsStoreName);
     this.callbacks = [];
+    this.actions = [];
 
     function onFavoritesStoreChanged(event) {
       self.getName().then(function(name) {
@@ -38,6 +39,99 @@
         console.log("Registered listener, store name:" + store.name);
       }
     });
+  }
+
+  /**
+   * Sets all the action items.
+   */
+  exports.FavoritesStore.prototype.initActions = function(newActions) {
+    console.log('----- START --- initActions')
+    console.log(newActions)
+    this.actions = newActions;
+
+
+//      store.clear().then(function(success) {
+//          if (success) {
+//              console.log("Success.");
+//          } else {
+//              console.log("Failed.");
+//          }
+//          console.log("Finished:" + success);
+//          resolve(success);
+//      }).catch(function(reason) {
+//          console.log("Failed to clear, reason:" + reason);
+//          reject(new Error("Failed to clear"));
+//      });
+
+    //TODO: store.Clear() , Add()
+  }
+
+  /**
+   * Get all the actions.
+   */
+  exports.FavoritesStore.prototype.getActions = function() {
+    console.log('----- START --- getActions')
+    return this.actions;
+  }
+
+  /**
+   * Sets all the action items.
+   */
+  exports.FavoritesStore.prototype.getAction = function(actionId) {
+    console.log('----- START --- initActions, actionId: ' + actionId)
+
+    if (actionId === undefined) {
+      console.log("actionId is undefined");
+      return undefined;
+    }
+
+    var item = {};
+
+    var self = this;
+    var datastore = this.actionsStore;
+
+    return new Promise(function(resolve, reject) {
+      datastore.then(function(stores) {
+        console.log("stores count:" + stores.length);
+        if (stores.length > 0) {
+          var store = stores[0];
+          console.log("getAction store.name:" + store.name);
+
+          self.getAllFavorites(true).then(function(items) {
+            console.log(' ================================== items getted !')
+            var itemsCount = items.length;
+            console.log('itemsCount = ' + itemsCount)
+
+            for (var i = 0; i < items.length; i++) {
+              console.log(items[i])
+              console.log('items[i].actionId = ' + items[i].actionId)
+
+              if (items[i].actionId == actionId) {
+                  item = items[i];
+                  console.log('items found');
+                  console.log(item);
+                  resolve(item)
+                  return;
+              }
+            }
+
+            console.log("action not found");
+            reject(new Error("action not found"));
+
+          })
+        } else {
+          console.log("incorrect store");
+          reject(new Error("incorrect store"));
+        }
+      })
+    })
+
+//    promise.then( function func(foundItem) {
+//      console.log("**** in func");
+//      console.log(foundItem);
+//      reject(foundItem);
+//    })
+
   }
 
   /**
@@ -63,8 +157,15 @@
   /**
    * Gets all the favorite items in the current store.
    */
-  exports.FavoritesStore.prototype.getAllFavorites = function() {
+  exports.FavoritesStore.prototype.getAllFavorites = function(getActivity) {
     var datastore = this.favoritesStore;
+
+    if (getActivity != undefined) {
+        datastore = this.actionsStore;
+        console.log('** getting ActionsItems')
+    } else {
+        console.log('** getting FavoritesItems')
+    }
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
@@ -80,12 +181,23 @@
             switch (task.operation) {
             case 'update':
             case 'add':
-              var item = new FavoritesItem(task.data.title, task.data.subTitle,
+              {
+              var item;
+              if (getActivity === undefined) {
+                console.log('** FavoritesItem')
+                item = new FavoritesItem(task.data.title, task.data.subTitle,
                                            task.data.image, task.data.icon,
                                            task.data.actionIds, task.data.clientId);
-              item.setIndex(task.data.index);
+              } else {
+                console.log('** ActionsItem')
+                item = new ActionsItem(task.data.activityName, task.data.actionId, task.data.filters);
+              }
+
               item.setId(task.id);
+              item.setIndex(task.data.index);
               result[task.data.index] = item;
+
+              }
               break;
             case 'remove':
               delete result[task.data.index];
@@ -340,8 +452,7 @@
             });
           })
         } else {
-          console.log("incorrect store");
-          reject(new Error("incorrect store"));
+          console.log("incorrect store");          reject(new Error("incorrect store"));
         }
       })
     })
@@ -581,5 +692,43 @@
   exports.FavoritesItem.prototype.getId = function() {
     return this.storeId;
   }
+
+
+  /**
+   * This is a constructor for actions item objects.
+   *
+   * @param{String} The title of the favorites item.
+   * @param{String} The sub-title of the favorites item.
+   * @param{String} The image URL for the favorites item.
+   * @param{String} The icon URL for the favorites item.
+   * @param{Array} The array of action IDs for this favorites item.
+   * @param{String} The application-specific ID.
+   */
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  exports.ActionsItem = function(activityName, actionId, filters) {
+    console.log("ActionsItem::ActionsItem: activityName:" + activityName +
+                ", actionId:" + actionId +
+                ", filters:" + filters);
+    this.index = -1;
+    this.activityName = activityName;
+    this.actionId = actionId;
+    this.filters = filters;
+  }
+
+  exports.ActionsItem.prototype.setIndex = function(index) {
+    this.index = index;
+  }
+
+  exports.ActionsItem.prototype.getIndex = function(index) {
+    return this.index;
+  }
+  exports.ActionsItem.prototype.setId = function(id) {
+    this.storeId = id;
+  }
+
+  exports.ActionsItem.prototype.getId = function() {
+    return this.storeId;
+  }
+
 
 })(window);

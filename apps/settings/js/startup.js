@@ -19,6 +19,27 @@ var settingsInit = [
   { index: 5, title:"this is text 6", subTitle:"this is description", image:"somefolder1/image6.png", icon:"somefolder1/caller1.png", actionIds:[6,2,4], clientId: "0631" },
 ]
 
+var actionsInit = [
+  { index: 0, activityName:"activityName 1", actionId:"12", filters:[{"type": "text/vcard"}, {"blobs": { "required":true } }] },
+  { index: 1, activityName:"activityName 2", actionId:"14", filters:[{"type": "text/vcard"}, {"blobs": { "required":false } }] },
+  { index: 2, activityName:"activityName 3", actionId:"15", filters:[{"type": "text/vcard"}, {"blobs": { "required":true } }] },
+  { index: 3, activityName:"activityName 4", actionId:"27", filters:[{"type": "text/vcard"}, {"blobs": { "required":false } }] },
+  { index: 4, activityName:"activityName 5", actionId:"31", filters:[{"type": "text/vcard"}, {"blobs": { "required":true } }] }
+]
+
+
+navigator.getDataStores('settings_actions').then(function(stores) {
+  stores[0].getLength().then(function(storeLength) {
+    if(storeLength == 0) {
+      for(i = 0; i < actionsInit.length; i++) {
+        addRecord(stores[0],actionsInit[i]);
+      };
+    } else {
+      var cursor = stores[0].sync();
+      runNextTask(cursor);
+    }
+  });
+});
 
 navigator.getDataStores('settings').then(function(stores) {
   stores[0].getLength().then(function(storeLength) {
@@ -68,11 +89,24 @@ function displayExisting(id,data) {
 
   console.log(data.index);
   console.log(data.title);
-  console.log(data.subTitle);
-  console.log(data.image);
-  console.log(data.icon);
-  console.log(data.actionIds);
-  console.log(data.clientId);
+//  console.log(data.subTitle);
+//  console.log(data.image);
+//  console.log(data.icon);
+//  console.log(data.actionIds);
+  console.log(data.activityName);
+
+
+
+
+//  favsStore = new FavoritesStore('settings', 'settings_actions');
+
+
+//    favsStore.getAllFavorites().then(function(items) {
+//        for(var i = 0; i < items.length; i++) {
+//            console.log(i);
+//            console.log(items[i]);
+//        }    })
+
 }
 
 (function(exports) {
