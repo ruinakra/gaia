@@ -45,25 +45,55 @@
    * Sets all the action items.
    */
   exports.FavoritesStore.prototype.initActions = function(newActions) {
-    console.log('----- START --- initActions')
+    console.log('----- START --- initActions');
     console.log(newActions)
-    this.actions = newActions;
 
+    if(newActions.length == 0) {
+      console.log('initActions array is empty');
+      return(new Error("newActions is empty"));
+    }
 
-//      store.clear().then(function(success) {
-//          if (success) {
-//              console.log("Success.");
-//          } else {
-//              console.log("Failed.");
-//          }
-//          console.log("Finished:" + success);
-//          resolve(success);
-//      }).catch(function(reason) {
-//          console.log("Failed to clear, reason:" + reason);
-//          reject(new Error("Failed to clear"));
-//      });
+    var self = this;
+    var datastore = this.actionsStore;
 
-    //TODO: store.Clear() , Add()
+    return new Promise(function(resolve, reject) {
+      datastore.then(function(stores) {
+        console.log("stores count:" + stores.length);
+        if (stores.length > 0) {
+          var store = stores[0];
+          console.log("getAction store.name:" + store.name);
+
+          store.clear().then(function(success) {
+            if (success) {
+              console.log("Success.");
+            } else {
+              console.log("Failed.");
+            }
+            console.log("Finished:" + success);
+          }).catch(function(reason) {
+            console.log("Failed to clear, reason:" + reason);
+            reject(new Error("Failed to clear"));
+          });
+
+          console.log(' adding an item... ');
+
+          for(var i = 0; i < newActions.length; i++) {
+            store.add(newActions[i]).then(function(newId) {
+              console.log('added id: ' + newId);
+            }).catch(function(reason) {
+              console.log("Failed to APPEND, reason:" + reason);
+              reject(new Error("Failed to append"));
+              return;
+            });
+          }
+          console.log('number of added items: ' + newActions.length);
+          resolve(newActions.length);
+        } else {
+          console.log("incorrect store");
+          reject(new Error("incorrect store"));
+        }
+      })
+    })
   }
 
   /**
@@ -71,7 +101,27 @@
    */
   exports.FavoritesStore.prototype.getActions = function() {
     console.log('----- START --- getActions')
-    return this.actions;
+
+    var self = this;
+    var datastore = this.actionsStore;
+
+    return new Promise(function(resolve, reject) {
+      datastore.then(function(stores) {
+        console.log("stores count:" + stores.length);
+        if (stores.length > 0) {
+          var store = stores[0];
+          console.log("getAction store.name:" + store.name);
+
+          self.getAllFavorites(true).then(function(items) {
+            console.log('items.length = ' + items.length)
+            resolve(items)
+          })
+        } else {
+          console.log("incorrect store");
+          reject(new Error("incorrect store"));
+        }
+      })
+    })
   }
 
   /**
@@ -125,13 +175,6 @@
         }
       })
     })
-
-//    promise.then( function func(foundItem) {
-//      console.log("**** in func");
-//      console.log(foundItem);
-//      reject(foundItem);
-//    })
-
   }
 
   /**
