@@ -224,6 +224,8 @@
                                          storeItem.actionIds, storeItem.clientId);
             item.setId(storeId);
             item.setIndex(storeItem.index);
+            item.setOkAction(storeItem.okAction);
+            item.setSendAction(storeItem.sendAction);
             resolve(item);
           }).catch(function(reason) {
             reject(reason);
@@ -267,8 +269,10 @@
               if (getActivity === undefined) {
                 console.log('** FavoritesItem')
                 item = new FavoritesItem(task.data.title, task.data.subTitle,
-                                           task.data.image, task.data.icon,
-                                           task.data.actionIds, task.data.clientId);
+                                         task.data.image, task.data.icon,
+                                         task.data.actionIds, task.data.clientId);
+                item.setOkAction(task.data.okAction);
+                item.setSendAction(task.data.sendAction);
               } else {
                 console.log('** ActionsItem')
                 item = new ActionsItem(task.data.activityName, task.data.actionId, task.data.filters);
@@ -719,20 +723,68 @@
     this.clientId = clientId;
   }
 
+  /**
+   * Set the index for the favorites item object.
+   *
+   * @param{Numeric} index - The new value for the favorites item index.
+   */
   exports.FavoritesItem.prototype.setIndex = function(index) {
     this.index = index;
   }
 
+  /**
+   * Get the index for the favorites item object.
+   */
   exports.FavoritesItem.prototype.getIndex = function(index) {
     return this.index;
   }
 
+  /**
+   * Set the internal store ID for the favorites item.
+   *
+   * @param{Numeric} id - The store ID for this favorites item.
+   */
   exports.FavoritesItem.prototype.setId = function(id) {
     this.storeId = id;
   }
 
+  /**
+   * Get the internal store ID for this favorites item.
+   */
   exports.FavoritesItem.prototype.getId = function() {
     return this.storeId;
+  }
+
+  /**
+   * Set the 'send-action' for this favorites item.
+   *
+   * @param{String} sendAction - The new send action for this favorites item.
+   */
+  exports.FavoritesItem.prototype.setSendAction = function(sendAction) {
+    this.sendAction = sendAction;
+  }
+
+  /**
+   * Get the 'send-action' for this favorites item.
+   */
+  exports.FavoritesItem.prototype.getSendAction = function() {
+    return this.sendAction;
+  }
+
+  /**
+   * Set the 'ok-action' for this favorites item.
+   *
+   * @param{String} okAction - The new ok action for this favorites item.
+   */
+  exports.FavoritesItem.prototype.setOkAction = function(okAction) {
+    this.okAction = okAction;
+  }
+
+  /**
+   * Get the 'ok-action' for this favorites item.
+   */
+  exports.FavoritesItem.prototype.getOkAction = function() {
+    return this.okAction;
   }
 
   /**
