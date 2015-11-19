@@ -809,12 +809,9 @@
   /**
    * This is a constructor for actions item objects.
    *
-   * @param{String} The title of the favorites item.
-   * @param{String} The sub-title of the favorites item.
-   * @param{String} The image URL for the favorites item.
-   * @param{String} The icon URL for the favorites item.
-   * @param{Array} The array of action IDs for this favorites item.
-   * @param{String} The application-specific ID.
+   * @param{String} The name of the activity.
+   * @param{Numeric} The action id for the actions item.
+   * @param{object} Contains capability information for the actions item.
    */
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   exports.ActionsItem = function(activityName, actionId, filters) {
@@ -824,20 +821,37 @@
     this.index = -1;
     this.activityName = activityName;
     this.actionId = actionId;
-    this.filters = filters;
+    this.filters = Object.assign({}, filters);
   }
 
+  /**
+   * Set the index for the actions item object.
+   *
+   * @param{Numeric} index - The new value for the actions item index.
+   */
   exports.ActionsItem.prototype.setIndex = function(index) {
     this.index = index;
   }
 
-  exports.ActionsItem.prototype.getIndex = function(index) {
+  /**
+   * Get the index for the actions item object.
+   */
+  exports.ActionsItem.prototype.getIndex = function() {
     return this.index;
   }
+
+  /**
+   * Set the internal store ID for the actions item.
+   *
+   * @param{Numeric} id - The store ID for this actions item.
+   */
   exports.ActionsItem.prototype.setId = function(id) {
     this.storeId = id;
   }
 
+  /**
+   * Get the internal store ID for this actions item.
+   */
   exports.ActionsItem.prototype.getId = function() {
     return this.storeId;
   }

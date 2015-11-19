@@ -20,11 +20,11 @@ var settingsInit = [
 ]
 
 var actionsInit = [
-  { index: 0, activityName:"activityName 1", actionId:"12", filters:[{"type": "text/vcard"}, {"blobs": { "required":true } }] },
-  { index: 1, activityName:"activityName 2", actionId:"14", filters:[{"type": "text/vcard"}, {"blobs": { "required":false } }] },
-  { index: 2, activityName:"activityName 3", actionId:"15", filters:[{"type": "text/vcard"}, {"blobs": { "required":true } }] },
-  { index: 3, activityName:"activityName 4", actionId:"27", filters:[{"type": "text/vcard"}, {"blobs": { "required":false } }] },
-  { index: 4, activityName:"activityName 5", actionId:"31", filters:[{"type": "text/vcard"}, {"blobs": { "required":true } }] }
+  { index: 0, activityName:"activityName 1", actionId:12, filters:{"type1": "text/vcard"} },
+  { index: 1, activityName:"activityName 2", actionId:14, filters:{"blobs1": {"required":false}} },
+  { index: 2, activityName:"activityName 3", actionId:15, filters:{"blobs2": {"required":true}} },
+  { index: 3, activityName:"activityName 4", actionId:27, filters:{"type2": "text/vcard"} },
+  { index: 4, activityName:"activityName 5", actionId:31, filters:{"type3": "text/vcard"} }
 ]
 
 
