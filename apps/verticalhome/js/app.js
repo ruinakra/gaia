@@ -1,7 +1,7 @@
 'use strict';
 /* global ItemStore, LazyLoader, Configurator,
           groupEditor, PinnedAppsNavigation, Clock,
-          PinnedAppsManager, MoreAppsNavigation */
+          PinnedAppsManager, MoreAppsNavigation, Toaster */
 /* global requestAnimationFrame */
 
 (function(exports) {
@@ -56,8 +56,27 @@
     HIDDEN_ROLES: HIDDEN_ROLES,
     EDIT_MODE_TRANSITION_STYLE: EDIT_MODE_TRANSITION_STYLE,
 
+    /**
+     * This is a variable that used for storing MoreApps visibility
+     * @type {Boolean}
+     */
     inMoreApps: false,
+
+    /**
+     * This is a variable stores deleted items from Pinned Apps before
+     * saving changes
+     * @type {Array}
+     */
+    deletedApps: [],
+
     pinnedAppsManager: null,
+    pinnedAppsNavigation: null,
+
+    /**
+     * This is a variable stores main screen's link for performance optimization
+     * @type {Array}
+     */
+    mainScreen: document.getElementById('main-screen'),
     clock: new Clock(),
 
     /**
@@ -88,6 +107,22 @@
       }
     },
 
+    isInPinnedApps : function(result) {
+      var pinnedItems = app.pinnedAppsManager.items;
+      var resManifest = result.app.manifestURL;
+      var resEntryPoint = result.app.entryPoint;
+
+      for (var i=0; i<pinnedItems.length; i++){
+        if(pinnedItems[i].entry!=null &&
+            resManifest == pinnedItems[i].entry.manifestURL &&
+            (typeof (resEntryPoint) !== 'undefined' &&
+              pinnedItems[i].entry.entry_point == resEntryPoint)){
+          return true;
+        }
+      }
+      return false;
+    },
+
     /**
      * Fetch all icons and render them.
      */
@@ -109,7 +144,10 @@
       //not when all application starts
       this.itemStore.all(function _all(results) {
         results.forEach(function _eachResult(result) {
-          this.grid.add(result);
+
+          if(!this.isInPinnedApps (result)){
+            this.grid.add(result);
+          }
         }, this);
 
         if (this.layoutReady) {
@@ -158,6 +196,187 @@
 
     },
 
+    /**
+     * Save all items(added, deleted, rearranged) from homescrenn
+     * deletedApps - store all unpinned items
+     * deleted items temporary marked by css class "hidden-item"
+     * no params
+     */
+
+    saveAllPinnedApps: function(){
+
+      var pinnedItems= app.pinnedAppsManager.items;
+      if(this.deletedApps.length>0){
+        for(var z = 0; z < this.deletedApps.length; z++){
+          app.itemStore.deletePinnedAppItem(this.deletedApps[z]);
+        }
+        this.deletedApps.splice(0,this.deletedApps.length);
+      }
+
+      for(var i = 0; i<pinnedItems.length; i++){
+
+        if(pinnedItems[i].element.classList.contains('hidden-item')){
+          pinnedItems.splice(i,1);
+        }
+
+        var obj = {};
+
+        if(pinnedItems[i].entry && pinnedItems[i].entry!=null){
+
+          var curEntry = pinnedItems[i].entry;
+          obj.name = curEntry.name;
+
+          obj.manifestURL = curEntry.manifestURL ||
+            curEntry.targetApp.manifestURL;
+
+          obj.icon = curEntry.icon || curEntry.icon.baseURI;
+
+          obj.index = pinnedItems[i].index;
+
+          app.itemStore.savePinnedAppItem(obj);
+
+        }
+      }
+
+      Toaster.showToast({
+        messageL10nId: 'changes-saved',
+        latency: 3000
+      });
+
+    },
+
+    pinToMainScreen: function(){
+      var pinnedApps = app.pinnedAppsNavigation;
+      pinnedApps.reset();
+
+      var moreAppsSelected = '#more-apps-screen .selected';
+      var selMoreApp = document.querySelector(moreAppsSelected);
+      var selMoreAppIcon = selMoreApp.getAttribute('data-test-icon');
+      var selMoreAppDataId = selMoreApp.getAttribute('data-identifier');
+      var selMoreAppTitle = selMoreApp.querySelector('span.title').textContent;
+      var maxDataIndex = app.pinnedAppsManager.items.length;
+
+      app.pinnedAppsManager.addEntry( maxDataIndex,
+                                      selMoreAppDataId,
+                                      selMoreAppIcon,
+                                      selMoreAppTitle);
+
+      Array.prototype.slice.call(
+        document.querySelector('#more-apps-screen #icons').children
+      );
+
+      app.itemStore.applicationSource.
+        removeIconFromGrid( selMoreAppDataId );
+
+      this.renderGrid();
+
+      if (selMoreApp.parentNode) {
+        selMoreApp.parentNode.removeChild(selMoreApp);
+      }
+
+      this.hideMoreApps();
+
+      Toaster.showToast({
+        messageL10nId: 'added-to-home-screen',
+        latency: 3000
+      });
+
+      pinnedApps.refresh();
+
+      for(var i=0; i<=maxDataIndex; i++){
+        pinnedApps.arrowDownFunc();
+      }
+
+    },
+
+    unpinFromMainScreen: function(){
+
+      var selPinnedApp = document.querySelector('#pinned-apps-list .selected');
+      var selPinnedAppDataId = selPinnedApp.dataset.index;
+
+      app.pinnedAppsNavigation.refresh();
+
+      this.deletedApps.push(
+        app.pinnedAppsManager.items[selPinnedAppDataId]
+        );
+
+      app.pinnedAppsManager.items[selPinnedAppDataId].
+        element.classList.add('hidden-item');
+
+      if (selPinnedApp.parentNode) {
+        selPinnedApp.parentNode.removeChild(selPinnedApp);
+      }
+
+      app.pinnedAppsNavigation.elements[1].classList.add('selected');
+      app.pinnedAppsNavigation.elemList.classList.add('animation');
+      app.pinnedAppsNavigation.refresh();
+
+      Toaster.showToast({
+        messageL10nId: 'removed-from-home-screen',
+        latency: 3000
+      });
+
+      app.pinnedAppsNavigation.refresh();
+      app.pinnedAppsNavigation.reset();
+    },
+
+    startPersonalize: function(){
+      this.mainScreen.classList.add('personalize_mode');
+      var ScreenHeader = document.getElementById('main-screen-header');
+      ScreenHeader.classList.remove('hidden-item');
+
+      if( !document.getElementById('addFromMoreApps')){
+        app.pinnedAppsNavigation.reset();
+
+        var plusButton = document.createElement('div');
+        plusButton.classList.add('pinned-app-item');
+        plusButton.setAttribute('id', 'addFromMoreApps');
+        plusButton.setAttribute('data-index', '998');
+
+          var plusButtonSpan = document.createElement('span');
+          plusButtonSpan.classList.add('title');
+          plusButtonSpan.style.visibility = 'visible';
+
+        plusButton.appendChild(plusButtonSpan);
+
+        var pinList = document.getElementById('pinned-apps-list');
+        var moreAppsLi = document.getElementById('moreApps');
+        pinList.insertBefore(plusButton, moreAppsLi);
+
+        app.pinnedAppsNavigation.refresh();
+      }
+    },
+
+    endPersonalize: function(){
+      var ScreenHeader = document.getElementById('main-screen-header');
+      ScreenHeader.classList.add('hidden-item');
+      var plusButton = document.getElementById('addFromMoreApps');
+      this.mainScreen.classList.remove('personalize_mode');
+      if (plusButton.parentNode) {
+        plusButton.parentNode.removeChild(plusButton);
+      }
+
+    },
+
+    rearrange: function(){
+      this.mainScreen.classList.add('rearrange_mode');
+    },
+
+    exitRearrange: function(){
+      this.mainScreen.classList.remove('rearrange_mode');
+    },
+
+    enterMoreAppsPersonalise: function(){
+      document.getElementById('more-apps-screen').classList
+        .add('personalize_mode');
+      this.showMoreApps();
+    },
+
+    exitMoreAppsPersonalise: function(){
+      document.getElementById('more-apps-screen').classList
+        .remove('personalize_mode');
+    },
+
     renderGrid: function() {
       this.grid.render();
     },
@@ -189,7 +408,7 @@
     showMoreApps: function() {
       this.inMoreApps = true;
       console.log('inMoreApps is : ' + this.inMoreApps);
-      document.getElementById('main-screen').classList.add('hidden');
+      this.mainScreen.classList.add('hidden');
       document.getElementById('more-apps-screen').classList.remove('hidden');
       MoreAppsNavigation.reset();
     },
@@ -197,7 +416,7 @@
     hideMoreApps: function() {
       this.inMoreApps = false;
       console.log('inMoreApps is : ' + this.inMoreApps);
-      document.getElementById('main-screen').classList.remove('hidden');
+      this.mainScreen.classList.remove('hidden');
       document.getElementById('more-apps-screen').classList.add('hidden');
     },
 

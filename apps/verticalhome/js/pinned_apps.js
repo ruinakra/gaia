@@ -154,13 +154,46 @@
   PinnedAppsManager.prototype = {
     init: function () {
       var pinnedAppsList = app.getPinnedAppsList();
+
       for (var i = 0; i < pinnedAppsList.length; i++) {
         this.items[i] = new PinnedAppItem(i, pinnedAppsList[i]);
       }
 
-      this.items.sort(function(elem1, elem2) {
-        return elem1.index - elem2.index;
-      });
+      this.items[0].element.classList.add('middle');
+
+      if(!document.getElementById('moreApps')){
+        var moreApps = document.createElement('div');
+        moreApps.className = 'pinned-app-item';
+        moreApps.setAttribute('data-index', '999');
+        moreApps.setAttribute('id', 'moreApps');
+
+          var moreAppsInput = document.createElement('input');
+          moreAppsInput.setAttribute('id', 'moreAppsButton');
+          moreAppsInput.setAttribute('type','button');
+
+          var moreAppsSpan = document.createElement('span');
+          moreAppsSpan.className = 'title';
+          moreAppsSpan.textContent = 'More Apps';
+
+        moreAppsInput.appendChild(moreAppsSpan);
+        moreApps.appendChild(moreAppsInput);
+
+        var pinList = document.getElementById('pinned-apps-list');
+        pinList.appendChild(moreApps);
+      }
+    },
+
+    addEntry: function(i,manifestURL,img,name) {
+
+      app.itemStore._pinnedAppsList[i] = {};
+      app.itemStore._pinnedAppsList[i].icon = img;
+      app.itemStore._pinnedAppsList[i].index = i;
+      app.itemStore._pinnedAppsList[i].manifestURL = manifestURL;
+      app.itemStore._pinnedAppsList[i].name = name;
+
+      this.items[i] = new PinnedAppItem(i,app.itemStore._pinnedAppsList[i]);
+
+      return this.items[i];
     }
   };
 
