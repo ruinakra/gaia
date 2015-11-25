@@ -2,7 +2,6 @@
   width: 100%;
   position: fixed;
   bottom: 0;
-  /*height: 100%;*/
   overflow-y: hidden;
   text-align: center;
   top: 8rem;
@@ -48,6 +47,41 @@
   width: 5rem;
   margin: 1rem auto 0 auto;
   transition: all 0.5s;
+  position: relative;
+}
+
+#pinned-apps-list .pinned-app-item .unread_notif{
+  position: absolute;
+  top: 0;
+  left: 0rem;
+  background-color: #e63d2f;
+  min-width: 0.7rem;
+  height: 1.3rem;
+  border-radius: 0.65rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #FFF;
+  display: block;
+  float: left;
+  padding: 0 0.3rem;
+  font-weight: bold;
+  transition: all 0.5s;
+}
+
+#pinned-apps-list .selected .unread_notif {
+  min-width: 2.4rem;
+  height: 3rem;
+  border-radius: 1.5rem;
+  font-size: 2.4rem;
+  left: 2.5rem;
+}
+
+#pinned-apps-list .selected.middle .unread_notif {
+  min-width: 1.4rem;
+  height: 2rem;
+  border-radius: 1rem;
+  font-size: 1.6rem;
+  left: 0.5rem;
 }
 
 #pinned-apps-list .pinned-app-icon,
@@ -62,7 +96,6 @@
 }
 
 #pinned-apps-list .title {
-  /*display: none;*/
   opacity: 0;
   transition: all 0.5s;
 }
@@ -101,3 +134,8 @@
   color:#fff;
   font-weight: bold;
 }
+
+#pinned-apps-list div.unread_notif.item-hidden{
+  display: none;
+}
+
