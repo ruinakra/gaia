@@ -58,11 +58,8 @@
    * Sets all the action items.
    */
   exports.FavoritesStore.prototype.initActions = function(newActions) {
-    console.log('----- START --- initActions');
-    console.log(newActions)
-
     if(newActions.length == 0) {
-      console.log('initActions array is empty');
+      console.log('newActions is empty');
       return(new Error("newActions is empty"));
     }
 
@@ -74,21 +71,13 @@
         console.log("stores count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("getAction store.name:" + store.name);
 
           store.clear().then(function(success) {
-            if (success) {
-              console.log("Success.");
-            } else {
-              console.log("Failed.");
-            }
             console.log("Finished:" + success);
           }).catch(function(reason) {
             console.log("Failed to clear, reason:" + reason);
             reject(new Error("Failed to clear"));
           });
-
-          console.log(' adding an item... ');
 
           for(var i = 0; i < newActions.length; i++) {
             store.add(newActions[i]).then(function(newId) {
@@ -99,7 +88,6 @@
               return;
             });
           }
-          console.log('number of added items: ' + newActions.length);
           resolve(newActions.length);
         } else {
           console.log("incorrect store");
@@ -113,17 +101,14 @@
    * Get all the actions.
    */
   exports.FavoritesStore.prototype.getActions = function() {
-    console.log('----- START --- getActions')
 
     var self = this;
     var datastore = this.actionsStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("stores count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("getAction store.name:" + store.name);
 
           self.getAllFavorites(true).then(function(items) {
             console.log('items.length = ' + items.length)
@@ -141,7 +126,6 @@
    * Sets all the action items.
    */
   exports.FavoritesStore.prototype.getAction = function(actionId) {
-    console.log('----- START --- initActions, actionId: ' + actionId)
 
     if (actionId === undefined) {
       console.log("actionId is undefined");
@@ -149,30 +133,21 @@
     }
 
     var item = {};
-
     var self = this;
     var datastore = this.actionsStore;
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("stores count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("getAction store.name:" + store.name);
 
           self.getAllFavorites(true).then(function(items) {
-            console.log(' ================================== items getted !')
             var itemsCount = items.length;
             console.log('itemsCount = ' + itemsCount)
 
             for (var i = 0; i < items.length; i++) {
-              console.log(items[i])
-              console.log('items[i].actionId = ' + items[i].actionId)
-
               if (items[i].actionId == actionId) {
                   item = items[i];
-                  console.log('items found');
-                  console.log(item);
                   resolve(item)
                   return;
               }
@@ -198,7 +173,6 @@
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
           console.log("FavoritesStore::getName: name:" + store.name);
@@ -245,17 +219,12 @@
 
     if (getActivity != undefined) {
         datastore = this.actionsStore;
-        console.log('** getting ActionsItems')
-    } else {
-        console.log('** getting FavoritesItems')
     }
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("FavoritesStore::getAllFavorites: name:" + store.name);
 
           var result = [];
           var cursor = store.sync();
@@ -267,14 +236,12 @@
               {
               var item;
               if (getActivity === undefined) {
-                console.log('** FavoritesItem')
                 item = new FavoritesItem(task.data.title, task.data.subTitle,
                                          task.data.image, task.data.icon,
                                          task.data.actionIds, task.data.clientId);
                 item.setOkAction(task.data.okAction);
                 item.setSendAction(task.data.sendAction);
               } else {
-                console.log('** ActionsItem')
                 item = new ActionsItem(task.data.activityName, task.data.actionId, task.data.filters);
               }
 
@@ -316,17 +283,11 @@
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
           console.log("FavoritesStore::clearAllFavorites: owner:" + store.owner);
           console.log("FavoritesStore::clearAllFavorites: readOnly:" + stores.readOnly);
           store.clear().then(function(success) {
-            if (success) {
-              console.log("Success.");
-            } else {
-              console.log("Failed.");
-            }
             console.log("Finished:" + success);
             resolve(success);
           }).catch(function(reason) {
@@ -350,10 +311,8 @@
 
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("FavoritesStore::getName: name:" + store.name);
           resolve(store);
         } else {
           reject(new Error("No store"));
@@ -371,52 +330,36 @@
    *                If the index is negative then a newItem will be insert to the begin of array.
    */
   exports.FavoritesStore.prototype.insertFavoritesItem = function(newItem, index) {
-    console.log("START insertItem");
-    if (index === undefined) {
-        console.log("Index is undefined");
-    } else {
-        console.log("Index is: " + index);
-    }
-
     var self = this;
     var datastore = this.favoritesStore;
+
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("hello!: count:" + stores.length);
+
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("insertFavoritesItem: store.name:" + store.name);
 
           self.getAllFavorites().then(function(items) {
-            console.log(' ================================== items getted !')
             var itemsCount = items.length;
-            console.log('itemsCount = ' + itemsCount)
 
-            if (index === undefined || index >= itemsCount) // append
+            if (index === undefined || index >= itemsCount) // APPEND
             {
-              console.log('  APPEND')
               newItem.setIndex(itemsCount);
               store.add(newItem).then(function(newId) {
-                console.log('added id: ' + newId);
                 resolve(newId);
               }).catch(function(reason) {
                 console.log("Failed to APPEND, reason:" + reason);
                 reject(new Error("Failed to append"));
               });
-            }
-            else if (index < 0) // prepend
-            {
-              console.log('  PREPEND')
-
+            } else if (index < 0) { // PREPEND
               newItem.setIndex(0);
 
               items.forEach(function(item) {
                 var currIndex = item.getIndex();
                 item.setIndex(++currIndex);
-                console.log("__ currIndex: " + currIndex);
 
                 store.put(item, item.getId()).then(function(id) {
-                  console.log("__ updated id: " + id);
+                  console.log("updated id: " + id);
                 }).catch(function(reason) {
                   console.log("Failed to put, reason:" + reason);
                   reject(new Error("Failed to prepend"));
@@ -430,18 +373,12 @@
                 console.log("Failed to PREPEND, reason:" + reason);
                 reject(new Error("Failed to add"));
               });
-            }
-            else if (index < itemsCount) // insert
-            {
-              console.log('  INSERT')
+            } else if (index < itemsCount) { // INSERT
               var foundItem = items.find(function(item) {
                 return item && (item.getIndex() === index);
               });
 
               if (foundItem && (foundItem.getIndex() === index)) {
-                console.log("foundItem.Index : " + foundItem.getIndex());
-                console.log("foundItem.Id    : " + foundItem.getId());
-
                 newItem.setIndex(index);
 
                 for (var i = index; i < items.length; i++) {
@@ -449,7 +386,7 @@
                   tempItem.setIndex(tempItem.getIndex() + 1);
 
                   store.put(tempItem, tempItem.getId()).then(function(id) {
-                    console.log("__ updated id: " + id);
+                    console.log("updated id: " + id);
                   }).catch(function(reason) {
                     console.log("Failed to put, reason:" + reason);
                     reject(new Error("Failed to insert"));
@@ -482,19 +419,14 @@
    * @param{Numeric} New position of an item.
    */
   exports.FavoritesStore.prototype.moveFavoritesItem = function(currentIndex, newIndex) {
-    console.log("START moveFavoritesItem");
-
     var self = this;
     var datastore = this.favoritesStore;
     return new Promise(function(resolve, reject) {
       datastore.then(function(stores) {
-        console.log("hello!: count:" + stores.length);
         if (stores.length > 0) {
           var store = stores[0];
-          console.log("moveFavoritesItem, store.name:" + store.name);
 
           self.getAllFavorites().then(function(items) {
-            console.log(' ================================== items getted !')
             var itemsCount = items.length;
             console.log('itemsCount = ' + itemsCount)
 
@@ -522,14 +454,14 @@
             newItem.setIndex(currentIndex);
 
             store.put(currentItem, currentItem.getId()).then(function(id) {
-              console.log("__ updated currentItem, id: " + id);
+              console.log("updated currentItem, id: " + id);
             }).catch(function(reason) {
               console.log("Failed to put in currentItem, reason:" + reason);
               reject(new Error("Failed to put"));
             });
 
             store.put(newItem, newItem.getId()).then(function(id) {
-              console.log("__ updated newItem, id: " + id);
+              console.log("updated newItem, id: " + id);
               resolve(id);
             }).catch(function(reason) {
               console.log("Failed to put in newItem, reason:" + reason);
@@ -537,7 +469,8 @@
             });
           })
         } else {
-          console.log("incorrect store");          reject(new Error("incorrect store"));
+          console.log("incorrect store");
+          reject(new Error("incorrect store"));
         }
       })
     })
@@ -708,12 +641,6 @@
    * @param{String} The application-specific ID.
    */
   exports.FavoritesItem = function(title, subTitle, image, icon, actionIds, clientId) {
-    console.log("FavoritesItem::FavoritesItem: title:" + title +
-                ", subTitle:" + subTitle +
-                ", image:" + image +
-                ", icon:" + icon +
-                ", actionIds:" + actionIds +
-                ", clientId:" + clientId);
     this.index = -1;
     this.title = title;
     this.subTitle = subTitle;
@@ -815,9 +742,6 @@
    */
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   exports.ActionsItem = function(activityName, actionId, filters) {
-    console.log("ActionsItem::ActionsItem: activityName:" + activityName +
-                ", actionId:" + actionId +
-                ", filters:" + filters);
     this.index = -1;
     this.activityName = activityName;
     this.actionId = actionId;
